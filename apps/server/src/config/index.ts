@@ -1,10 +1,27 @@
+import z from "zod";
+
+const envSchema = z.object({
+	PORT: z
+		.string()
+		.regex(/^\d+$/, "Must be numeric string")
+		.transform(Number)
+		.default(3000),
+	HOST: z.string().default("0.0.0.0"),
+	CLIENT_ORIGIN: z.string().default("http://localhost:5173"),
+	DATABASE_URL: z.string(),
+	GITHUB_CLIENT_ID: z.string(),
+	GITHUB_CLIENT_SECRET: z.string(),
+});
+
+const env = envSchema.parse(process.env);
+
 export const config = {
 	server: {
-		port: parseInt(process.env.PORT ?? "3000", 10),
-		host: process.env.HOST ?? "0.0.0.0",
+		port: env.PORT,
+		host: env.HOST,
 	},
 	cors: {
-		origins: (process.env.CLIENT_ORIGIN as string).split(","),
+		origins: env.CLIENT_ORIGIN.split(","),
 		methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 		allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
 		credentials: true,
@@ -12,11 +29,11 @@ export const config = {
 	},
 	auth: {
 		github: {
-			clientId: process.env.GITHUB_CLIENT_ID as string,
-			clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+			clientId: env.GITHUB_CLIENT_ID,
+			clientSecret: env.GITHUB_CLIENT_SECRET,
 		},
 	},
 	db: {
-		databaseUrl: process.env.DATABASE_URL as string,
+		databaseUrl: env.DATABASE_URL,
 	},
 } as const;
