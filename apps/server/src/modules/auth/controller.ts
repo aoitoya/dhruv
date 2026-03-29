@@ -22,11 +22,7 @@ export async function getSession(
 }
 
 /**
- * Proxies a Fastify request to the authentication subsystem and forwards its HTTP response to the client.
- *
- * Builds a web-standard Request from the incoming Fastify request (constructing an absolute URL, converting headers,
- * and JSON-stringifying the body when present), sends it to the authentication layer, then mirrors the resulting
- * HTTP status, headers, and body onto the Fastify reply.
+ * Proxies a Fastify request to the better-auth and forwards its HTTP response to the client.
  */
 export async function handleAuthRequest(
 	request: FastifyRequest,
