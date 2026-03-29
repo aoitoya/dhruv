@@ -1,6 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
-import { useCallback, useState } from "react";
+import {
+	type ChangeEvent,
+	type SubmitEventHandler,
+	useCallback,
+	useState,
+} from "react";
 import { IoLogoGithub as Github } from "react-icons/io";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,14 +49,13 @@ function AuthPage() {
 	const [activeTab, setActiveTab] = useState<AuthTab>("signin");
 
 	const handleInputChange = useCallback(
-		(field: keyof typeof formData) =>
-			(e: React.ChangeEvent<HTMLInputElement>) => {
-				setFormData((prev) => ({ ...prev, [field]: e.target.value }));
-			},
+		(field: keyof typeof formData) => (e: ChangeEvent<HTMLInputElement>) => {
+			setFormData((prev) => ({ ...prev, [field]: e.target.value }));
+		},
 		[],
 	);
 
-	const handleSubmit = useCallback<React.FormEventHandler>(
+	const handleSubmit = useCallback<SubmitEventHandler>(
 		async (e) => {
 			e.preventDefault();
 			setIsLoading(true);
@@ -81,9 +85,9 @@ function AuthPage() {
 		try {
 			await authClient.signIn.social({
 				provider: "github",
-				callbackURL: `${import.meta.env.VITE_CLIENT_URL}/`,
-				errorCallbackURL: `${import.meta.env.VITE_CLIENT_URL}/auth`,
-				newUserCallbackURL: `${import.meta.env.VITE_CLIENT_URL}/`,
+				callbackURL: `${import.meta.env.VITE_CLIENT_URL}/app`,
+				errorCallbackURL: `${import.meta.env.VITE_CLIENT_URL}/`,
+				newUserCallbackURL: `${import.meta.env.VITE_CLIENT_URL}/app`,
 			});
 		} catch (error) {
 			console.error("GitHub auth error:", error);
@@ -245,7 +249,7 @@ function FormInput({
 	label: string;
 	type: string;
 	value: string;
-	onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+	onChange: (e: ChangeEvent<HTMLInputElement>) => void;
 	placeholder: string;
 	autoComplete?: string;
 }) {
