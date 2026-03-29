@@ -2,6 +2,11 @@ import { fromNodeHeaders } from "better-auth/node";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { auth } from "./service.js";
 
+/**
+ * Retrieves the current authentication session and sends it as the HTTP response.
+ *
+ * If no session exists, sets the response status to 401 and sends `{ error: "Unauthorized" }`.
+ */
 export async function getSession(
 	request: FastifyRequest,
 	reply: FastifyReply,
@@ -16,6 +21,9 @@ export async function getSession(
 	reply.send(session);
 }
 
+/**
+ * Proxies a Fastify request to the better-auth and forwards its HTTP response to the client.
+ */
 export async function handleAuthRequest(
 	request: FastifyRequest,
 	reply: FastifyReply,

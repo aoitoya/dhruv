@@ -28,6 +28,16 @@ const initialFormData = {
 	password: "",
 };
 
+/**
+ * Render the authentication page with sign-in and sign-up forms, tabbed switching, and a GitHub social sign-in option.
+ *
+ * The component manages form state (name, email, password), tracks a loading state to disable inputs during requests,
+ * and switches between "signin" and "signup" modes. Submitting the form triggers the appropriate email sign-in or
+ * sign-up flow via `authClient` and updates the loading state; initiating GitHub auth triggers a social sign-in flow.
+ * Errors are logged to the console and will clear the loading state.
+ *
+ * @returns The React element that renders the authentication page UI.
+ */
 function AuthPage() {
 	const [formData, setFormData] = useState(initialFormData);
 	const [isLoading, setIsLoading] = useState(false);
@@ -173,6 +183,15 @@ function AuthPage() {
 	);
 }
 
+/**
+ * Renders a two-option tab switcher for choosing between "Sign In" and "Sign Up".
+ *
+ * The active tab is highlighted; clicking a tab calls `onTabChange` with the selected tab.
+ *
+ * @param activeTab - Currently selected tab, either `"signin"` or `"signup"`.
+ * @param onTabChange - Callback invoked with the newly selected tab when the user clicks a tab.
+ * @returns The tab switcher React element.
+ */
 function AuthTabs({
 	activeTab,
 	onTabChange,
@@ -201,6 +220,18 @@ function AuthTabs({
 	);
 }
 
+/**
+ * Renders a labeled, required input element controlled by the provided props.
+ *
+ * @param id - Unique identifier applied to the input and its label
+ * @param label - Visible text for the input's label
+ * @param type - HTML input `type` attribute (e.g., "text", "email", "password")
+ * @param value - Controlled input value
+ * @param onChange - Change handler for the input element
+ * @param placeholder - Placeholder text shown when the input is empty
+ * @param autoComplete - Optional `autocomplete` attribute value for the input
+ * @returns The JSX element containing a label and a required controlled input
+ */
 function FormInput({
 	id,
 	label,
@@ -236,6 +267,11 @@ function FormInput({
 	);
 }
 
+/**
+ * Render a horizontal separator with a centered "Or continue with" label.
+ *
+ * @returns A JSX element containing a full-width horizontal line with an uppercase, centered label overlaid on the line.
+ */
 function SocialAuthSeparator() {
 	return (
 		<div className="relative py-2">
