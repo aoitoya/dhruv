@@ -3,6 +3,13 @@ import type * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * Styled input component that forwards standard `<input>` props and applies a set of default utility classes.
+ *
+ * @param className - Additional class name(s) to merge with the component's defaults
+ * @param type - HTML input `type` attribute (for example, `"text"`, `"email"`, `"password"`)
+ * @returns The rendered input element with default styling and any provided props applied
+ */
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
 	return (
 		<InputPrimitive

@@ -5,6 +5,12 @@ import type * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * Renders an HTML label element with standardized styling and a `data-slot="label"` attribute.
+ *
+ * @param className - Additional CSS class names to append to the component's default utility classes
+ * @returns A JSX `label` element with the composed `className`, `data-slot="label"`, and all other props forwarded
+ */
 function Label({ className, ...props }: React.ComponentProps<"label">) {
 	return (
 		<label

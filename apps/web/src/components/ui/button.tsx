@@ -40,6 +40,16 @@ const buttonVariants = cva(
 	},
 );
 
+/**
+ * Render a styled Button component that forwards props to the underlying ButtonPrimitive.
+ *
+ * Applies variant and size-based utility classes and merges any additional `className`.
+ *
+ * @param className - Additional CSS classes to merge with variant/size classes
+ * @param variant - Visual variant to apply (e.g., "default", "outline", "secondary", "ghost", "destructive")
+ * @param size - Size variant to apply (e.g., "default", "xs", "sm", "lg", "icon", "icon-xs", "icon-sm", "icon-lg")
+ * @returns A ButtonPrimitive element with computed classes and forwarded props
+ */
 function Button({
 	className,
 	variant = "default",
