@@ -1,0 +1,3 @@
+{
+  "*.{css,json,js,jsx,ts,tsx}": ["biome ci"]
+}

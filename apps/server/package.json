@@ -1,0 +1,31 @@
+{
+	"name": "server",
+	"version": "1.0.0",
+	"type": "module",
+	"description": "",
+	"main": "dist/server.js",
+	"scripts": {
+		"dev": "NODE_ENV=development tsx watch --env-file=.env src/server.ts",
+		"build": "tsc",
+		"start": "NODE_ENV=production node dist/server.js",
+		"check-types": "tsc --noEmit",
+		"lint": "biome check --write ."
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"@fastify/cors": "^11.2.0",
+		"@neondatabase/serverless": "^1.0.2",
+		"better-auth": "^1.5.6",
+		"drizzle-orm": "^0.45.2",
+		"fastify": "^5.8.4",
+		"zod": "^4.3.6"
+	},
+	"devDependencies": {
+		"@tsconfig/node24": "^24.0.4",
+		"drizzle-kit": "^0.31.10",
+		"tsx": "^4.21.0",
+		"typescript": "^6.0.2"
+	}
+}

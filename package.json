@@ -1,21 +1,21 @@
 {
-  "name": "dhruv",
-  "private": true,
-  "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
-    "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "check-types": "turbo run check-types"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "2.4.9",
-    "prettier": "^3.7.4",
-    "turbo": "^2.8.21",
-    "typescript": "5.9.2"
-  },
-  "packageManager": "pnpm@9.0.0",
-  "engines": {
-    "node": ">=18"
-  }
+	"name": "dhruv",
+	"private": true,
+	"scripts": {
+		"build": "turbo run build",
+		"dev": "turbo run dev",
+		"lint": "turbo run lint",
+		"check-types": "turbo run check-types",
+		"prepare": "husky"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.4.9",
+		"husky": "^9.1.7",
+		"lint-staged": "^16.4.0",
+		"turbo": "^2.8.21"
+	},
+	"packageManager": "pnpm@9.0.0",
+	"engines": {
+		"node": ">=18"
+	}
 }
