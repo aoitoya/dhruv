@@ -1,4 +1,4 @@
-import { Bell, ChevronDown, Home, Settings } from "lucide-react";
+import { Bell, ChevronDown, Home } from "lucide-react";
 import SearchBar from "../ui/SearchBar";
 
 export default function Title() {
