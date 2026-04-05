@@ -4,7 +4,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 
 const RootLayout = () => (
 	<ThemeProvider>
-		<div className="d">
+		<div className="">
 			<Outlet />
 			<TanStackRouterDevtools />
 		</div>
