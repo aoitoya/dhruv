@@ -1,4 +1,5 @@
-import { Bell, ChevronDown, Home } from "lucide-react";
+import { Bell, Home } from "lucide-react";
+import ProfileBtn from "../ui/ProfileBtn";
 import SearchBar from "../ui/SearchBar";
 
 export default function Title() {
@@ -47,7 +48,7 @@ export default function Title() {
 				</div>
 
 				{/* Profile Section */}
-				<button
+				{/* <button
 					type="button"
 					className="flex items-center gap-3 pl-2  p-1 rounded-xl transition-all group"
 				>
@@ -73,7 +74,8 @@ export default function Title() {
 						size={14}
 						className="text-gray-400 group-hover:text-gray-600"
 					/>
-				</button>
+				</button> */}
+				<ProfileBtn />
 			</div>
 		</nav>
 	);

@@ -54,17 +54,17 @@ export default function SearchBar() {
 
 			<DialogContent className="sm:max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-t-2xl sm:rounded-xl gap-0">
 				<DialogHeader className="gap-0">
-					<DialogDescription>
-						<div className="flex items-center px-4 py-4 border-b border-slate-100 ">
-							<Search className="text-indigo-500 mr-3" size={20} />
-							<input
-								autoFocus
-								type="text"
-								placeholder="Search documents, files, settings..."
-								className="w-full text-base sm:text-lg bg-transparent border-none focus:ring-0 focus:outline-none text-slate-700 placeholder:text-slate-400"
-							/>
-						</div>
-					</DialogDescription>
+					{/* <DialogDescription> */}
+					<div className="flex items-center px-4 py-4 border-b border-slate-100 ">
+						<Search className="text-indigo-500 mr-3" size={20} />
+						<input
+							autoFocus
+							type="text"
+							placeholder="Search documents, files, settings..."
+							className="w-full text-base sm:text-lg bg-transparent border-none focus:ring-0 focus:outline-none text-slate-700 placeholder:text-slate-400"
+						/>
+					</div>
+					{/* </DialogDescription> */}
 					<Separator />
 				</DialogHeader>
 
