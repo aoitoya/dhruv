@@ -1,4 +1,5 @@
-import { Bell, ChevronDown, Home, Search, Settings } from "lucide-react";
+import { Bell, ChevronDown, Home, Settings } from "lucide-react";
+import SearchBar from "../ui/SearchBar";
 
 export default function Title() {
 	return (
@@ -26,15 +27,7 @@ export default function Title() {
 			{/* RIGHT SIDE: Actions & Profile */}
 			<div className="flex items-center gap-3">
 				{/* Search Bar (Optional but looks great in dashboards) */}
-				<div className="hidden sm:flex items-center bg-gray-50 border border-gray-200 rounded-full px-3 py-1.5 mr-4 focus-within:ring-2 focus-within:ring-indigo-100 transition-all">
-					<Search size={16} className="text-gray-400" />
-					<input
-						type="text"
-						placeholder="Search..."
-						className="bg-transparent border-none text-sm focus:outline-none ml-2 w-32"
-					/>
-				</div>
-
+				<SearchBar />
 				{/* Icon Buttons */}
 				<div className="flex items-center gap-1 border-r border-gray-100 pr-4 mr-1">
 					<button
