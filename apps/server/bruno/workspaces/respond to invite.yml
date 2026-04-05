@@ -1,0 +1,21 @@
+info:
+  name: respond to workspace invite
+  type: http
+  seq: 9
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/invites/{{workspaceId}}/{{userId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "action": "accept"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,21 @@
+info:
+  name: create workspace
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/workspaces"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "dhruv"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
