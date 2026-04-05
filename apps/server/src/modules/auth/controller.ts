@@ -1,24 +1,29 @@
 import { fromNodeHeaders } from "better-auth/node";
 import type { FastifyReply, FastifyRequest } from "fastify";
+import type { AuthenticatedRequest } from "../../types/fastify.js";
 import { auth } from "./service.js";
+
+export async function requireAuth(
+	request: FastifyRequest,
+	reply: FastifyReply,
+) {
+	const session = await auth.api.getSession({
+		headers: fromNodeHeaders(request.headers),
+	});
+	if (!session) {
+		return reply.status(401).send({ error: "Unauthorized" });
+	}
+	request.session = session;
+}
 
 /**
  * Retrieves the current authentication session and sends it as the HTTP response.
  *
  * If no session exists, sets the response status to 401 and sends `{ error: "Unauthorized" }`.
  */
-export async function getSession(
-	request: FastifyRequest,
-	reply: FastifyReply,
-): Promise<void> {
-	const session = await auth.api.getSession({
-		headers: fromNodeHeaders(request.headers),
-	});
-	if (!session) {
-		reply.status(401).send({ error: "Unauthorized" });
-		return;
-	}
-	reply.send(session);
+export function getSession(_request: FastifyRequest, reply: FastifyReply) {
+	const request = _request as AuthenticatedRequest;
+	reply.send(request.session);
 }
 
 /**
@@ -27,7 +32,7 @@ export async function getSession(
 export async function handleAuthRequest(
 	request: FastifyRequest,
 	reply: FastifyReply,
-): Promise<void> {
+) {
 	const url = new URL(request.url, `http://${request.headers.host}`);
 
 	const headers = new Headers();
