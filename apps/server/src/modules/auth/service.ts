@@ -1,8 +1,8 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { config } from "@/config/index.js";
-import * as schema from "@/db/schema/index.js";
-import { db } from "@/plugins/db.js";
+import { config } from "../../config/index.js";
+import { db } from "../../db/index.js";
+import * as schema from "../../db/schema/index.js";
 
 export const auth = betterAuth({
  appName: "Dhruv",
@@ -25,3 +25,6 @@ export const auth = betterAuth({
 	},
 	trustedOrigins: config.cors.origins,
 });
+
+export type Auth = typeof auth;
+export type Session = typeof auth.$Infer.Session;

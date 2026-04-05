@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
-import { getSession, handleAuthRequest } from "./controller.js";
+import { getSession, handleAuthRequest, requireAuth } from "./controller.js";
+import { auth } from "./service.js";
 
 /**
  * Register authentication-related HTTP routes on the given Fastify instance.
@@ -9,12 +10,19 @@ import { getSession, handleAuthRequest } from "./controller.js";
  *
  * @param app - Fastify instance used to register the routes
  */
-export async function authRoutes(app: FastifyInstance): Promise<void> {
+export function registerAuthRoutes(app: FastifyInstance) {
+	app.decorate("auth", auth);
+
+	app.decorate("requireAuth", requireAuth);
+
 	app.route({
 		method: ["GET", "POST"],
 		url: "/api/auth/*",
 		handler: handleAuthRequest,
 	});
 
-	app.get("/api/me", getSession);
+	app.get("/api/me", {
+		handler: getSession,
+		onRequest: [app.requireAuth],
+	});
 }
