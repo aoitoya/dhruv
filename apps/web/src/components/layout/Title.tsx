@@ -38,18 +38,18 @@ export default function Title() {
 						<span className="absolute top-2 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
 					</button>
 
-					<button
+					{/* <button
 						type="button"
 						className="p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors"
 					>
 						<Settings size={20} />
-					</button>
+					</button> */}
 				</div>
 
 				{/* Profile Section */}
 				<button
 					type="button"
-					className="flex items-center gap-3 pl-2 hover:bg-gray-50 p-1 rounded-xl transition-all group"
+					className="flex items-center gap-3 pl-2  p-1 rounded-xl transition-all group"
 				>
 					<div className="relative">
 						<img
