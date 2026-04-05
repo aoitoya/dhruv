@@ -29,10 +29,7 @@ export default function SearchBar() {
 			<DialogTrigger>
 				<div className="cursor-pointer">
 					{/* DESKTOP: Wide Search Bar */}
-					<button
-						type="button"
-						className="hidden sm:flex items-center justify-between bg-slate-50 hover:bg-white border border-slate-200 hover:border-indigo-400 rounded-xl px-4 py-2 transition-all duration-200 shadow-sm hover:shadow-md w-64 group"
-					>
+					<div className="hidden sm:flex items-center justify-between bg-slate-50 hover:bg-white border border-slate-200 hover:border-indigo-400 rounded-xl px-4 py-2 transition-all duration-200 shadow-sm hover:shadow-md w-64 group">
 						<div className="flex items-center gap-3">
 							<Search
 								size={18}
@@ -46,16 +43,12 @@ export default function SearchBar() {
 							<Command size={10} className="text-slate-500" />
 							<span className="text-[10px] font-bold text-slate-500">K</span>
 						</div>
-					</button>
+					</div>
 
 					{/* MOBILE: Icon Only Button */}
-					<button
-						type="button"
-						aria-label="Search"
-						className="flex sm:hidden p-2.5 text-gray-500 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 rounded-full transition-all hover:shadow-sm active:scale-95"
-					>
+					<div className="flex sm:hidden p-2.5 text-gray-500 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 rounded-full transition-all hover:shadow-sm active:scale-95">
 						<Search size={20} strokeWidth={2.5} />
-					</button>
+					</div>
 				</div>
 			</DialogTrigger>
 
