@@ -1,6 +1,12 @@
+import sensible from "@fastify/sensible";
+import type {
+	FastifyPluginAsyncJsonSchemaToTs,
+	JsonSchemaToTsProvider,
+} from "@fastify/type-provider-json-schema-to-ts";
 import Fastify from "fastify";
-import { authRoutes } from "@/modules/auth/index.js";
-import { registerCors } from "@/plugins/cors.js";
+import { registerAuthRoutes } from "./modules/auth/index.js";
+import { registerWorkspaceRoutes } from "./modules/workspace/index.js";
+import { registerCors } from "./plugins/cors.js";
 
 /**
  * Create and configure a Fastify application instance.
@@ -9,17 +15,28 @@ import { registerCors } from "@/plugins/cors.js";
  *
  * @returns The configured Fastify instance
  */
-export async function buildApp() {
+export function buildApp() {
 	const app = Fastify({
 		logger: true,
+	}).withTypeProvider<JsonSchemaToTsProvider>();
+
+	app.register(sensible);
+
+	registerCors(app);
+
+	app.get("/", (_, reply) => {
+		reply.send("ok");
 	});
 
-	await registerCors(app);
-	await authRoutes(app);
+	registerAuthRoutes(app);
 
-	app.get("/", async () => {
-		return { hello: "world" };
+	app.register(appRoutes, {
+		prefix: "/api",
 	});
 
 	return app;
 }
+
+const appRoutes: FastifyPluginAsyncJsonSchemaToTs = async (app) => {
+	app.register(registerWorkspaceRoutes);
+};
