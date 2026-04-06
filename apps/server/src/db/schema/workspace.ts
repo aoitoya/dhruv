@@ -30,7 +30,7 @@ export const workspaceMember = pgTable(
 	{
 		userId: text("user_id")
 			.notNull()
-			.references(() => user.id, { onDelete: "set null" }),
+			.references(() => user.id, { onDelete: "cascade" }),
 		workspaceId: uuid("workspace_id")
 			.notNull()
 			.references(() => workspace.id, { onDelete: "cascade" }),
