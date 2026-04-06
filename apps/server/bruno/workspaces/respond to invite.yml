@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: "{{baseUrl}}/api/invites/{{workspaceId}}/{{userId}}"
+  url: "{{baseUrl}}/api/invites/{{workspaceId}}/response"
   body:
     type: json
     data: |-
