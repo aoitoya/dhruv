@@ -32,6 +32,7 @@
 		"@faker-js/faker": "^10.4.0",
 		"@tsconfig/node24": "^24.0.4",
 		"@types/node": "^24.12.0",
+		"@vitest/coverage-v8": "^4.1.2",
 		"drizzle-kit": "^0.31.10",
 		"tsx": "^4.21.0",
 		"typescript": "^6.0.2",

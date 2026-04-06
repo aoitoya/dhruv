@@ -154,8 +154,14 @@ export const registerProjectRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 			const userId = session.user.id;
 			const projectId = request.params.id;
 
+			const workspaceId = await projectService.getWorkspaceId(projectId);
+			if (!workspaceId) {
+				reply.status(404).send({ success: false, error: "NOT_FOUND" });
+				return;
+			}
+
 			const isAdminOrOwner = await workspaceService.isAdminOrOwner(
-				projectId,
+				workspaceId,
 				userId,
 			);
 
@@ -187,7 +193,16 @@ export const registerProjectRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 			const userId = session.user.id;
 			const projectId = request.params.id;
 
-			const isAdminOrOwner = await workspaceService.isOwner(projectId, userId);
+			const workspaceId = await projectService.getWorkspaceId(projectId);
+			if (!workspaceId) {
+				reply.status(404).send({ success: false, error: "NOT_FOUND" });
+				return;
+			}
+
+			const isAdminOrOwner = await workspaceService.isAdminOrOwner(
+				workspaceId,
+				userId,
+			);
 
 			if (!isAdminOrOwner) {
 				reply.status(403).send({ success: false, error: "FORBIDDEN" });
@@ -258,20 +273,20 @@ export const registerProjectRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 			const projectId = request.params.id;
 			const userIds = request.body.userIds;
 
+			const workspaceId = await projectService.getWorkspaceId(projectId);
+
+			if (!workspaceId) {
+				reply.status(404).send({ success: false, error: "NOT_FOUND" });
+				return;
+			}
+
 			const isAdminOrOwner = await workspaceService.isAdminOrOwner(
-				projectId,
+				workspaceId,
 				userId,
 			);
 
 			if (!isAdminOrOwner) {
 				reply.status(403).send({ success: false, error: "FORBIDDEN" });
-				return;
-			}
-
-			const workspaceId = await projectService.getWorkspaceId(projectId);
-
-			if (!workspaceId) {
-				reply.status(404).send({ success: false, error: "NOT_FOUND" });
 				return;
 			}
 
