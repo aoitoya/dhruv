@@ -1,29 +1,31 @@
 {
-	"extends": "@tsconfig/node24/tsconfig.json",
-	"compilerOptions": {
-		"strict": true,
-		"noStrictGenericChecks": false,
-		"outDir": "./dist",
-		"rootDir": "./src",
-		"sourceMap": true,
-		"declaration": true,
-		"declarationMap": true,
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
-		"noUncheckedIndexedAccess": true,
-		"noImplicitOverride": true,
-		"skipLibCheck": true,
-		"incremental": true,
-		"tsBuildInfoFile": "./dist/.tsbuildinfo",
-		"ignoreDeprecations": "6.0"
-	},
-	"include": ["src/**/*.ts", "src/**/*.d.ts"],
-	"exclude": [
-		"node_modules",
-		"dist",
-		"coverage",
-		"tests",
-		"**/*.test.ts",
-		"**/*.spec.ts"
-	]
+  "extends": "@tsconfig/node24/tsconfig.json",
+  "compilerOptions": {
+    "strict": true,
+    "noStrictGenericChecks": false,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "skipLibCheck": true,
+    "incremental": true,
+    "tsBuildInfoFile": "./dist/.tsbuildinfo"
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "coverage",
+    "tests",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ]
 }

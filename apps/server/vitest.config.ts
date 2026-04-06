@@ -10,5 +10,11 @@ export default defineConfig({
 			GITHUB_CLIENT_ID: "asdfdsafadsfads",
 			GITHUB_CLIENT_SECRET: "fdadfasdfasdf",
 		},
+		coverage: {
+			provider: "v8",
+			include: ["src/**/*.ts"],
+			exclude: ["src/**/*.test.ts"],
+		},
+		testTimeout: 30000,
 	},
 });
