@@ -36,6 +36,9 @@ export const project = pgTable("project", {
 export const projectMember = pgTable(
 	"project_member",
 	{
+		workspaceId: uuid("workspace_id")
+			.notNull()
+			.references(() => workspace.id, { onDelete: "cascade" }),
 		projectId: uuid("project_id")
 			.notNull()
 			.references(() => project.id, { onDelete: "cascade" }),
