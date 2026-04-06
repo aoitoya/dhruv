@@ -1,0 +1,21 @@
+info:
+  name: update member role
+  type: http
+  seq: 12
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/api/workspaces/{{workspaceId}}/members/{{memberUserId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "role": "ADMIN"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
