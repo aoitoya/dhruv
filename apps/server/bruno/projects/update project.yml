@@ -1,0 +1,29 @@
+info:
+  name: update project
+  type: http
+  seq: 4
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/api/projects/{{projectId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Updated Project Name",
+        "description": "Updated description",
+        "status": "ARCHIVED",
+        "color": "#00ff00"
+      }
+  auth: inherit
+
+runtime:
+  variables:
+    - name: projectId
+      value: abc123
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
