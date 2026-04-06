@@ -4,7 +4,7 @@ import SearchBar from "../ui/SearchBar";
 
 export default function Title() {
 	return (
-		<nav className="flex items-center justify-between px-8 py-3 bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
+		<nav className="flex items-center justify-between px-8 py-3 opacity-80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50 dark:border-border">
 			{/* LEFT SIDE: Logo & Search */}
 			<div className="flex items-center gap-12">
 				<div className="flex items-center gap-2">
@@ -18,7 +18,7 @@ export default function Title() {
 
 				{/* Simple Navigation */}
 				<ul className="hidden md:flex items-center gap-8">
-					<li className="flex items-center gap-2 text-sm font-semibold text-indigo-600 cursor-pointer">
+					<li className="flex items-center gap-2 text-sm font-semibold text-primary cursor-pointer">
 						<Home size={18} />
 						<span>Home</span>
 					</li>
@@ -30,13 +30,13 @@ export default function Title() {
 				{/* Search Bar (Optional but looks great in dashboards) */}
 				<SearchBar />
 				{/* Icon Buttons */}
-				<div className="flex items-center gap-1 border-r border-gray-100 pr-4 mr-1">
+				<div className="flex items-center gap-1 border-r pr-4 mr-1">
 					<button
 						type="button"
-						className="p-2 text-gray-500 hover:bg-indigo-50 hover:text-indigo-600 rounded-full transition-colors relative"
+						className="p-2 text-gray-500 hover:bg-indigo-50 hover:text-primary rounded-full transition-colors relative dark:text-foreground dark:hover:bg-indigo-950 "
 					>
 						<Bell size={20} />
-						<span className="absolute top-2 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
+						<span className="absolute top-2 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white dark:border-border" />
 					</button>
 
 					{/* <button
