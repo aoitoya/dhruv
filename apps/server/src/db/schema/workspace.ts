@@ -19,10 +19,15 @@ export const workspace = pgTable("workspace", {
 		.$onUpdate(() => new Date()),
 });
 
-export const workspaceRole = pgEnum("workspace_role", ["OWNER", "MEMBER"]);
+export const workspaceRole = pgEnum("workspace_role", [
+	"OWNER",
+	"ADMIN",
+	"MEMBER",
+]);
 export const workspaceMemberStatus = pgEnum("workspace_member_status", [
 	"ACTIVE",
 	"LEFT",
+	"REMOVED",
 ]);
 
 export const workspaceMember = pgTable(
