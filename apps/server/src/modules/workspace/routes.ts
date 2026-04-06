@@ -1,8 +1,6 @@
 import type { FastifyPluginAsyncJsonSchemaToTs } from "@fastify/type-provider-json-schema-to-ts";
 import type { AuthenticatedRequest } from "../../types/fastify.js";
-import Workspace from "./service.js";
-
-const workspace = new Workspace();
+import { workspaceService } from "./service.js";
 
 export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 	app,
@@ -15,7 +13,7 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 		const session = (request as AuthenticatedRequest).session;
 		const userId = session.user.id;
 
-		const workspaces = await workspace.getAll(userId);
+		const workspaces = await workspaceService.getAll(userId);
 
 		reply.send({
 			success: true,
@@ -40,7 +38,10 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 			const userId = session.user.id;
 			const newWorkspaceName = request.body.name;
 
-			const newWorkspace = await workspace.create(newWorkspaceName, userId);
+			const newWorkspace = await workspaceService.create(
+				newWorkspaceName,
+				userId,
+			);
 
 			reply.send({
 				success: true,
@@ -66,7 +67,7 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 			const userId = session.user.id;
 			const workspaceId = request.params.id;
 
-			const isActiveMember = await workspace.isActiveMember(
+			const isActiveMember = await workspaceService.isActiveMember(
 				workspaceId,
 				userId,
 			);
@@ -79,7 +80,7 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 				return;
 			}
 
-			const fetchedWorkspace = await workspace.getOneById(workspaceId);
+			const fetchedWorkspace = await workspaceService.getOneById(workspaceId);
 
 			reply.send({
 				success: true,
@@ -117,7 +118,7 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 			const workspaceId = request.params.id;
 			const updatedName = request.body.name;
 
-			const isOwner = await workspace.isOwner(workspaceId, userId);
+			const isOwner = await workspaceService.isOwner(workspaceId, userId);
 
 			if (!isOwner) {
 				reply.status(403).send({
@@ -127,7 +128,7 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 				return;
 			}
 
-			await workspace.updateOne(workspaceId, { name: updatedName });
+			await workspaceService.updateOne(workspaceId, { name: updatedName });
 
 			reply.send({
 				success: true,
@@ -154,7 +155,7 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 			const userId = session.user.id;
 			const workspaceId = request.params.id;
 
-			const isOwner = await workspace.isOwner(workspaceId, userId);
+			const isOwner = await workspaceService.isOwner(workspaceId, userId);
 
 			if (!isOwner) {
 				reply.status(403).send({
@@ -164,7 +165,7 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 				return;
 			}
 
-			await workspace.deleteOne(workspaceId);
+			await workspaceService.deleteOne(workspaceId);
 
 			reply.send({
 				success: true,
@@ -201,7 +202,7 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 			const workspaceId = request.params.id;
 			const userIds = request.body.userIds;
 
-			const isAdminOrOwner = await workspace.isAdminOrOwner(
+			const isAdminOrOwner = await workspaceService.isAdminOrOwner(
 				workspaceId,
 				userId,
 			);
@@ -210,7 +211,7 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 				return;
 			}
 
-			await workspace.inviteMembers(workspaceId, userIds);
+			await workspaceService.inviteMembers(workspaceId, userIds);
 
 			reply.send({ success: true });
 		},
@@ -234,7 +235,7 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 			const userId = session.user.id;
 			const workspaceId = request.params.id;
 
-			const isAdminOrOwner = await workspace.isAdminOrOwner(
+			const isAdminOrOwner = await workspaceService.isAdminOrOwner(
 				workspaceId,
 				userId,
 			);
@@ -243,7 +244,8 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 				return;
 			}
 
-			const invites = await workspace.getInvitesForWorkspace(workspaceId);
+			const invites =
+				await workspaceService.getInvitesForWorkspace(workspaceId);
 
 			reply.send({ success: true, data: invites });
 		},
@@ -253,7 +255,7 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 		const session = (request as AuthenticatedRequest).session;
 		const userId = session.user.id;
 
-		const invites = await workspace.getInvitesForUser(userId);
+		const invites = await workspaceService.getInvitesForUser(userId);
 
 		reply.send({ success: true, data: invites });
 	});
@@ -284,7 +286,11 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 			const workspaceId = request.params.workspaceId;
 			const action = request.body.action;
 
-			await workspace.responseWorkspaceInvite(workspaceId, userId, action);
+			await workspaceService.responseWorkspaceInvite(
+				workspaceId,
+				userId,
+				action,
+			);
 			reply.send({ success: true });
 		},
 	);
@@ -307,7 +313,7 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 			const userId = session.user.id;
 			const workspaceId = request.params.id;
 
-			const isActiveMember = await workspace.isActiveMember(
+			const isActiveMember = await workspaceService.isActiveMember(
 				workspaceId,
 				userId,
 			);
@@ -317,7 +323,7 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 				return;
 			}
 
-			const members = await workspace.getMembers(workspaceId);
+			const members = await workspaceService.getMembers(workspaceId);
 			reply.send({ success: true, data: members });
 		},
 	);
@@ -342,11 +348,11 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 			const workspaceId = request.params.id;
 			const memberUserId = request.params.userId;
 
-			const currentUserRole = await workspace.getMemberRole(
+			const currentUserRole = await workspaceService.getMemberRole(
 				workspaceId,
 				userId,
 			);
-			const targetRole = await workspace.getMemberRole(
+			const targetRole = await workspaceService.getMemberRole(
 				workspaceId,
 				memberUserId,
 			);
@@ -376,7 +382,7 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 				return;
 			}
 
-			await workspace.removeMember(workspaceId, memberUserId);
+			await workspaceService.removeMember(workspaceId, memberUserId);
 			reply.send({ success: true });
 		},
 	);
@@ -409,11 +415,11 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 			const memberUserId = request.params.userId;
 			const newRole = request.body.role;
 
-			const currentUserRole = await workspace.getMemberRole(
+			const currentUserRole = await workspaceService.getMemberRole(
 				workspaceId,
 				userId,
 			);
-			const targetRole = await workspace.getMemberRole(
+			const targetRole = await workspaceService.getMemberRole(
 				workspaceId,
 				memberUserId,
 			);
@@ -432,9 +438,17 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 			}
 
 			if (newRole === "OWNER") {
-				await workspace.transferOwnership(workspaceId, userId, memberUserId);
+				await workspaceService.transferOwnership(
+					workspaceId,
+					userId,
+					memberUserId,
+				);
 			} else {
-				await workspace.updateMemberRole(workspaceId, memberUserId, newRole);
+				await workspaceService.updateMemberRole(
+					workspaceId,
+					memberUserId,
+					newRole,
+				);
 			}
 
 			reply.send({ success: true });
@@ -459,7 +473,10 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 			const userId = session.user.id;
 			const workspaceId = request.params.id;
 
-			const currentRole = await workspace.getMemberRole(workspaceId, userId);
+			const currentRole = await workspaceService.getMemberRole(
+				workspaceId,
+				userId,
+			);
 
 			if (currentRole === "OWNER") {
 				reply.status(400).send({
@@ -469,7 +486,7 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 				return;
 			}
 
-			await workspace.leaveWorkspace(workspaceId, userId);
+			await workspaceService.leaveWorkspace(workspaceId, userId);
 			reply.send({ success: true });
 		},
 	);
