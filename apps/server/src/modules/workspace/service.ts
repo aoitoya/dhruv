@@ -127,20 +127,6 @@ class Workspace {
 		});
 	}
 
-	async leaveWorkspace(workspaceId: string, userId: string) {
-		await db
-			.update(workspaceMember)
-			.set({
-				status: "LEFT",
-			})
-			.where(
-				and(
-					eq(workspaceMember.workspaceId, workspaceId),
-					eq(workspaceMember.userId, userId),
-				),
-			);
-	}
-
 	async isActiveMember(workspaceId: string, userId: string) {
 		const [result] = await db
 			.select({})
@@ -169,6 +155,36 @@ class Workspace {
 			);
 
 		return !!result;
+	}
+
+	async isAdminOrOwner(workspaceId: string, userId: string) {
+		const [result] = await db
+			.select({ role: workspaceMember.role })
+			.from(workspaceMember)
+			.where(
+				and(
+					eq(workspaceMember.workspaceId, workspaceId),
+					eq(workspaceMember.userId, userId),
+					eq(workspaceMember.status, "ACTIVE"),
+				),
+			);
+
+		return !!result && (result.role === "OWNER" || result.role === "ADMIN");
+	}
+
+	async getMemberRole(workspaceId: string, userId: string) {
+		const [result] = await db
+			.select({ role: workspaceMember.role })
+			.from(workspaceMember)
+			.where(
+				and(
+					eq(workspaceMember.workspaceId, workspaceId),
+					eq(workspaceMember.userId, userId),
+					eq(workspaceMember.status, "ACTIVE"),
+				),
+			);
+
+		return result?.role ?? null;
 	}
 
 	async getInvitesForWorkspace(workspaceId: string) {
@@ -203,6 +219,107 @@ class Workspace {
 				),
 			)
 			.leftJoin(workspace, eq(workspaceInvite.workspaceId, workspace.id));
+	}
+
+	async getMembers(workspaceId: string) {
+		return db
+			.select({
+				userId: workspaceMember.userId,
+				role: workspaceMember.role,
+				status: workspaceMember.status,
+				joinedAt: workspaceMember.createdAt,
+				userName: user.name,
+				userEmail: user.email,
+			})
+			.from(workspaceMember)
+			.where(
+				and(
+					eq(workspaceMember.workspaceId, workspaceId),
+					eq(workspaceMember.status, "ACTIVE"),
+				),
+			)
+			.leftJoin(user, eq(workspaceMember.userId, user.id));
+	}
+
+	async removeMember(workspaceId: string, memberUserId: string) {
+		await db
+			.update(workspaceMember)
+			.set({
+				status: "REMOVED",
+			})
+			.where(
+				and(
+					eq(workspaceMember.workspaceId, workspaceId),
+					eq(workspaceMember.userId, memberUserId),
+				),
+			);
+	}
+
+	async leaveWorkspace(workspaceId: string, userId: string) {
+		const currentRole = await this.getMemberRole(workspaceId, userId);
+
+		if (currentRole === "OWNER") {
+			throw new Error("Owner must transfer ownership before leaving");
+		}
+
+		await db
+			.update(workspaceMember)
+			.set({
+				status: "LEFT",
+			})
+			.where(
+				and(
+					eq(workspaceMember.workspaceId, workspaceId),
+					eq(workspaceMember.userId, userId),
+				),
+			);
+	}
+
+	async transferOwnership(
+		workspaceId: string,
+		currentOwnerId: string,
+		newOwnerId: string,
+	) {
+		await db.transaction(async (tx) => {
+			await tx
+				.update(workspaceMember)
+				.set({ role: "ADMIN" })
+				.where(
+					and(
+						eq(workspaceMember.workspaceId, workspaceId),
+						eq(workspaceMember.userId, currentOwnerId),
+					),
+				);
+
+			await tx
+				.update(workspaceMember)
+				.set({ role: "OWNER" })
+				.where(
+					and(
+						eq(workspaceMember.workspaceId, workspaceId),
+						eq(workspaceMember.userId, newOwnerId),
+					),
+				);
+		});
+	}
+
+	async updateMemberRole(
+		workspaceId: string,
+		memberUserId: string,
+		newRole: "ADMIN" | "MEMBER",
+	) {
+		const [updated] = await db
+			.update(workspaceMember)
+			.set({ role: newRole })
+			.where(
+				and(
+					eq(workspaceMember.workspaceId, workspaceId),
+					eq(workspaceMember.userId, memberUserId),
+				),
+			)
+			.returning();
+
+		return updated;
 	}
 }
 
