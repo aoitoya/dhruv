@@ -1,0 +1,22 @@
+info:
+  name: remove project member
+  type: http
+  seq: 8
+
+http:
+  method: DELETE
+  url: "{{baseUrl}}/api/projects/{{projectId}}/members/{{userId}}"
+  auth: inherit
+
+runtime:
+  variables:
+    - name: projectId
+      value: abc123
+    - name: userId
+      value: user-id-to-remove
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

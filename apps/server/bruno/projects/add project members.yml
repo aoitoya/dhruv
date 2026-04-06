@@ -1,0 +1,26 @@
+info:
+  name: add project members
+  type: http
+  seq: 7
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/projects/{{projectId}}/members"
+  body:
+    type: json
+    data: |-
+      {
+        "userIds": ["user-id-1", "user-id-2"]
+      }
+  auth: inherit
+
+runtime:
+  variables:
+    - name: projectId
+      value: abc123
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,20 @@
+info:
+  name: delete project
+  type: http
+  seq: 5
+
+http:
+  method: DELETE
+  url: "{{baseUrl}}/api/projects/{{projectId}}"
+  auth: inherit
+
+runtime:
+  variables:
+    - name: projectId
+      value: abc123
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
