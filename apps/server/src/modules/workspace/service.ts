@@ -323,4 +323,5 @@ class Workspace {
 	}
 }
 
+export const workspaceService = new Workspace();
 export default Workspace;
