@@ -260,9 +260,8 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 					type: "object",
 					properties: {
 						workspaceId: { type: "string" },
-						userId: { type: "string" },
 					},
-					required: ["workspaceId", "userId"],
+					required: ["workspaceId"],
 				},
 				body: {
 					type: "object",

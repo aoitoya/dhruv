@@ -297,7 +297,7 @@ describe("Workspace:", () => {
 
 		const res = await app.inject({
 			method: "POST",
-			url: `/api/invites/${workspace.id}/${secondUser.id}`,
+			url: `/api/invites/${workspace.id}/response`,
 			body: { action: "accept" },
 			cookies: secondUserCookies,
 		});
@@ -335,7 +335,7 @@ describe("Workspace:", () => {
 
 		const res = await app.inject({
 			method: "POST",
-			url: `/api/invites/${workspace.id}/${secondUser.id}`,
+			url: `/api/invites/${workspace.id}/response`,
 			body: { action: "reject" },
 			cookies: secondUserCookies,
 		});
