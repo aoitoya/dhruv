@@ -1,0 +1,20 @@
+info:
+  name: get workspace members
+  type: http
+  seq: 11
+
+http:
+  method: GET
+  url: "{{baseUrl}}/api/workspaces/{{workspaceId}}/members"
+  auth: inherit
+
+runtime:
+  variables:
+    - name: workspaceId
+      value: 792a55c9-5882-4475-bce0-f4e30060d214
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
