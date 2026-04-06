@@ -17,9 +17,10 @@ export async function requireAuth(
 }
 
 /**
- * Retrieves the current authentication session and sends it as the HTTP response.
+ * Retrieves the current authentication session from the request and returns it.
  *
- * If no session exists, sets the response status to 401 and sends `{ error: "Unauthorized" }`.
+ * This function does not set any HTTP status or send an error response.
+ * Use {@link requireAuth} to enforce authorization - it will respond with 401 when the session is missing.
  */
 export function getSession(_request: FastifyRequest, reply: FastifyReply) {
 	const request = _request as AuthenticatedRequest;

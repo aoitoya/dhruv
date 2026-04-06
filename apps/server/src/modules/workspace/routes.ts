@@ -253,7 +253,7 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 	});
 
 	app.post(
-		"/invites/:workspaceId/:userId",
+		"/invites/:workspaceId/response",
 		{
 			schema: {
 				params: {
@@ -277,16 +277,9 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 			const session = (request as AuthenticatedRequest).session;
 			const userId = session.user.id;
 			const workspaceId = request.params.workspaceId;
-			const inviteUserId = request.params.userId;
 			const action = request.body.action;
 
-			if (inviteUserId !== userId) {
-				reply.status(403).send({ success: false, error: "FORBIDDEN" });
-				return;
-			}
-
 			await workspace.responseWorkspaceInvite(workspaceId, userId, action);
-
 			reply.send({ success: true });
 		},
 	);

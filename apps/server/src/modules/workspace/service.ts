@@ -104,10 +104,17 @@ class Workspace {
 				.set({
 					status: action === "accept" ? "ACCEPTED" : "REJECTED",
 				})
+				.where(
+					and(
+						eq(workspaceInvite.workspaceId, workspaceId),
+						eq(workspaceInvite.userId, userId),
+						eq(workspaceInvite.status, "PENDING"),
+					),
+				)
 				.returning();
 
 			if (!invitation) {
-				throw new Error();
+				throw new Error("Invitation not found or already processed");
 			}
 
 			if (action === "reject") return;
