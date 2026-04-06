@@ -378,4 +378,350 @@ describe("Workspace:", () => {
 		});
 		expect(verifyRes.statusCode).toBe(403);
 	});
+
+	test("admin can invite members", async () => {
+		const workspace = await createWorkspace(cookies);
+		const { user: secondUser, cookies: secondUserCookies } = await createUser();
+
+		await app.inject({
+			method: "POST",
+			url: `/api/workspaces/${workspace.id}/invite`,
+			body: { userIds: [secondUser.id] },
+			cookies,
+		});
+
+		await app.inject({
+			method: "POST",
+			url: `/api/invites/${workspace.id}/response`,
+			body: { action: "accept" },
+			cookies: secondUserCookies,
+		});
+
+		const { user: adminUser, cookies: adminCookies } = await createUser();
+		await app.inject({
+			method: "POST",
+			url: `/api/workspaces/${workspace.id}/invite`,
+			body: { userIds: [adminUser.id] },
+			cookies,
+		});
+		await app.inject({
+			method: "POST",
+			url: `/api/invites/${workspace.id}/response`,
+			body: { action: "accept" },
+			cookies: adminCookies,
+		});
+
+		await app.inject({
+			method: "PATCH",
+			url: `/api/workspaces/${workspace.id}/members/${adminUser.id}`,
+			body: { role: "ADMIN" },
+			cookies,
+		});
+
+		const { user: memberUser } = await createUser();
+		const inviteRes = await app.inject({
+			method: "POST",
+			url: `/api/workspaces/${workspace.id}/invite`,
+			body: { userIds: [memberUser.id] },
+			cookies: adminCookies,
+		});
+
+		expect(inviteRes.statusCode).toBe(200);
+
+		await cleanupWorkspace(workspace.id);
+		await cleanupUser(secondUser.id);
+		await cleanupUser(adminUser.id);
+		await cleanupUser(memberUser.id);
+	});
+
+	test("user can get workspace members", async () => {
+		const workspace = await createWorkspace(cookies);
+		const { user: secondUser, cookies: secondUserCookies } = await createUser();
+
+		await app.inject({
+			method: "POST",
+			url: `/api/workspaces/${workspace.id}/invite`,
+			body: { userIds: [secondUser.id] },
+			cookies,
+		});
+		await app.inject({
+			method: "POST",
+			url: `/api/invites/${workspace.id}/response`,
+			body: { action: "accept" },
+			cookies: secondUserCookies,
+		});
+
+		const res = await app.inject({
+			method: "GET",
+			url: `/api/workspaces/${workspace.id}/members`,
+			cookies,
+		});
+
+		expect(res.statusCode).toBe(200);
+		const body = JSON.parse(res.body);
+		expect(body.success).toBe(true);
+		expect(Array.isArray(body.data)).toBe(true);
+		expect(body.data.length).toBe(2);
+
+		await cleanupWorkspace(workspace.id);
+		await cleanupUser(secondUser.id);
+	});
+
+	test("admin can remove member", async () => {
+		const workspace = await createWorkspace(cookies);
+		const { user: secondUser, cookies: secondUserCookies } = await createUser();
+
+		await app.inject({
+			method: "POST",
+			url: `/api/workspaces/${workspace.id}/invite`,
+			body: { userIds: [secondUser.id] },
+			cookies,
+		});
+		await app.inject({
+			method: "POST",
+			url: `/api/invites/${workspace.id}/response`,
+			body: { action: "accept" },
+			cookies: secondUserCookies,
+		});
+
+		const { user: adminUser, cookies: adminCookies } = await createUser();
+		await app.inject({
+			method: "POST",
+			url: `/api/workspaces/${workspace.id}/invite`,
+			body: { userIds: [adminUser.id] },
+			cookies,
+		});
+		await app.inject({
+			method: "POST",
+			url: `/api/invites/${workspace.id}/response`,
+			body: { action: "accept" },
+			cookies: adminCookies,
+		});
+		await app.inject({
+			method: "PATCH",
+			url: `/api/workspaces/${workspace.id}/members/${adminUser.id}`,
+			body: { role: "ADMIN" },
+			cookies,
+		});
+
+		const res = await app.inject({
+			method: "DELETE",
+			url: `/api/workspaces/${workspace.id}/members/${secondUser.id}`,
+			cookies: adminCookies,
+		});
+
+		expect(res.statusCode).toBe(200);
+
+		await cleanupWorkspace(workspace.id);
+		await cleanupUser(secondUser.id);
+		await cleanupUser(adminUser.id);
+	});
+
+	test("owner can remove admin", async () => {
+		const workspace = await createWorkspace(cookies);
+		const { user: adminUser, cookies: adminCookies } = await createUser();
+
+		await app.inject({
+			method: "POST",
+			url: `/api/workspaces/${workspace.id}/invite`,
+			body: { userIds: [adminUser.id] },
+			cookies,
+		});
+		await app.inject({
+			method: "POST",
+			url: `/api/invites/${workspace.id}/response`,
+			body: { action: "accept" },
+			cookies: adminCookies,
+		});
+		await app.inject({
+			method: "PATCH",
+			url: `/api/workspaces/${workspace.id}/members/${adminUser.id}`,
+			body: { role: "ADMIN" },
+			cookies,
+		});
+
+		const res = await app.inject({
+			method: "DELETE",
+			url: `/api/workspaces/${workspace.id}/members/${adminUser.id}`,
+			cookies,
+		});
+
+		expect(res.statusCode).toBe(200);
+
+		await cleanupWorkspace(workspace.id);
+		await cleanupUser(adminUser.id);
+	});
+
+	test("admin cannot remove admin", async () => {
+		const workspace = await createWorkspace(cookies);
+		const { user: adminUser, cookies: adminCookies } = await createUser();
+
+		await app.inject({
+			method: "POST",
+			url: `/api/workspaces/${workspace.id}/invite`,
+			body: { userIds: [adminUser.id] },
+			cookies,
+		});
+		await app.inject({
+			method: "POST",
+			url: `/api/invites/${workspace.id}/response`,
+			body: { action: "accept" },
+			cookies: adminCookies,
+		});
+		await app.inject({
+			method: "PATCH",
+			url: `/api/workspaces/${workspace.id}/members/${adminUser.id}`,
+			body: { role: "ADMIN" },
+			cookies,
+		});
+
+		const { user: secondAdmin, cookies: secondAdminCookies } =
+			await createUser();
+		await app.inject({
+			method: "POST",
+			url: `/api/workspaces/${workspace.id}/invite`,
+			body: { userIds: [secondAdmin.id] },
+			cookies,
+		});
+		await app.inject({
+			method: "POST",
+			url: `/api/invites/${workspace.id}/response`,
+			body: { action: "accept" },
+			cookies: secondAdminCookies,
+		});
+		await app.inject({
+			method: "PATCH",
+			url: `/api/workspaces/${workspace.id}/members/${secondAdmin.id}`,
+			body: { role: "ADMIN" },
+			cookies,
+		});
+
+		const res = await app.inject({
+			method: "DELETE",
+			url: `/api/workspaces/${workspace.id}/members/${secondAdmin.id}`,
+			cookies: adminCookies,
+		});
+
+		expect(res.statusCode).toBe(403);
+
+		await cleanupWorkspace(workspace.id);
+		await cleanupUser(adminUser.id);
+		await cleanupUser(secondAdmin.id);
+	});
+
+	test("owner can promote member to admin", async () => {
+		const workspace = await createWorkspace(cookies);
+		const { user: memberUser, cookies: memberCookies } = await createUser();
+
+		await app.inject({
+			method: "POST",
+			url: `/api/workspaces/${workspace.id}/invite`,
+			body: { userIds: [memberUser.id] },
+			cookies,
+		});
+		await app.inject({
+			method: "POST",
+			url: `/api/invites/${workspace.id}/response`,
+			body: { action: "accept" },
+			cookies: memberCookies,
+		});
+
+		const res = await app.inject({
+			method: "PATCH",
+			url: `/api/workspaces/${workspace.id}/members/${memberUser.id}`,
+			body: { role: "ADMIN" },
+			cookies,
+		});
+
+		expect(res.statusCode).toBe(200);
+
+		await cleanupWorkspace(workspace.id);
+		await cleanupUser(memberUser.id);
+	});
+
+	test("owner can transfer ownership", async () => {
+		const workspace = await createWorkspace(cookies);
+		const { user: newOwner, cookies: newOwnerCookies } = await createUser();
+
+		await app.inject({
+			method: "POST",
+			url: `/api/workspaces/${workspace.id}/invite`,
+			body: { userIds: [newOwner.id] },
+			cookies,
+		});
+		await app.inject({
+			method: "POST",
+			url: `/api/invites/${workspace.id}/response`,
+			body: { action: "accept" },
+			cookies: newOwnerCookies,
+		});
+
+		const res = await app.inject({
+			method: "PATCH",
+			url: `/api/workspaces/${workspace.id}/members/${newOwner.id}`,
+			body: { role: "OWNER" },
+			cookies,
+		});
+
+		expect(res.statusCode).toBe(200);
+
+		const verifyRes = await app.inject({
+			method: "GET",
+			url: `/api/workspaces/${workspace.id}/members`,
+			cookies: newOwnerCookies,
+		});
+		const body = JSON.parse(verifyRes.body);
+		const originalOwner = body.data.find((m: any) => m.role === "ADMIN");
+		const newOwnerMember = body.data.find((m: any) => m.role === "OWNER");
+		expect(originalOwner).toBeDefined();
+		expect(newOwnerMember.userId).toBe(newOwner.id);
+
+		await cleanupWorkspace(workspace.id);
+		await cleanupUser(newOwner.id);
+	});
+
+	test("member can leave workspace", async () => {
+		const workspace = await createWorkspace(cookies);
+		const { user: memberUser, cookies: memberCookies } = await createUser();
+
+		await app.inject({
+			method: "POST",
+			url: `/api/workspaces/${workspace.id}/invite`,
+			body: { userIds: [memberUser.id] },
+			cookies,
+		});
+		await app.inject({
+			method: "POST",
+			url: `/api/invites/${workspace.id}/response`,
+			body: { action: "accept" },
+			cookies: memberCookies,
+		});
+
+		const res = await app.inject({
+			method: "POST",
+			url: `/api/workspaces/${workspace.id}/leave`,
+			cookies: memberCookies,
+		});
+
+		expect(res.statusCode).toBe(200);
+
+		await cleanupWorkspace(workspace.id);
+		await cleanupUser(memberUser.id);
+	});
+
+	test("owner cannot leave without transferring ownership", async () => {
+		const workspace = await createWorkspace(cookies);
+
+		const res = await app.inject({
+			method: "POST",
+			url: `/api/workspaces/${workspace.id}/leave`,
+			cookies,
+		});
+
+		expect(res.statusCode).toBe(400);
+		const body = JSON.parse(res.body);
+		expect(body.error).toBe("Owner must transfer ownership before leaving");
+
+		await cleanupWorkspace(workspace.id);
+	});
 });
