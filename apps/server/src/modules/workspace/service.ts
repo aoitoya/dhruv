@@ -85,12 +85,15 @@ class Workspace {
 	}
 
 	async inviteMembers(workspaceId: string, userIds: string[]) {
-		await db.insert(workspaceInvite).values(
-			userIds.map((userId) => ({
-				userId,
-				workspaceId,
-			})),
-		);
+		await db
+			.insert(workspaceInvite)
+			.values(
+				userIds.map((userId) => ({
+					userId,
+					workspaceId,
+				})),
+			)
+			.onConflictDoNothing();
 	}
 
 	async responseWorkspaceInvite(

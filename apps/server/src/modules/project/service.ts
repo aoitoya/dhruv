@@ -157,11 +157,14 @@ class Project {
 	}
 
 	async addMember(projectId: string, workspaceId: string, userId: string) {
-		await db.insert(projectMember).values({
-			projectId,
-			workspaceId,
-			userId,
-		});
+		await db
+			.insert(projectMember)
+			.values({
+				projectId,
+				workspaceId,
+				userId,
+			})
+			.onConflictDoNothing();
 	}
 
 	async removeMember(projectId: string, userId: string) {
