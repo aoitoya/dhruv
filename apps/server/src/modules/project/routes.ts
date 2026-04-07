@@ -60,7 +60,7 @@ export const registerProjectRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 						name: { type: "string" },
 						description: { type: "string" },
 						color: { type: "string" },
-						dueDate: { type: "string" },
+						dueDate: { type: "string", format: "date-time" },
 					},
 					required: ["name"],
 				},
@@ -144,8 +144,10 @@ export const registerProjectRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 						description: { type: "string" },
 						status: { type: "string", enum: ["ACTIVE", "ARCHIVED"] },
 						color: { type: "string" },
-						dueDate: { type: "string" },
+						dueDate: { type: "string", format: "date-time" },
 					},
+					minProperties: 1,
+					additionalProperties: false,
 				},
 			},
 		},
@@ -271,7 +273,7 @@ export const registerProjectRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 			const session = (request as AuthenticatedRequest).session;
 			const userId = session.user.id;
 			const projectId = request.params.id;
-			const userIds = request.body.userIds;
+			const userIds = [...new Set(request.body.userIds)];
 
 			const workspaceId = await projectService.getWorkspaceId(projectId);
 
