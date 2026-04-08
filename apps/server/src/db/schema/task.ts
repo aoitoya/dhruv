@@ -52,3 +52,19 @@ export const task = pgTable("task", {
 		.defaultNow()
 		.$onUpdate(() => new Date()),
 });
+
+export const comment = pgTable("comment", {
+	id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+	taskId: uuid("task_id")
+		.notNull()
+		.references(() => task.id, { onDelete: "cascade" }),
+	authorId: text("author_id")
+		.notNull()
+		.references(() => user.id, { onDelete: "cascade" }),
+	content: text("content").notNull(),
+	createdAt: timestamp("created_at").notNull().defaultNow(),
+	updatedAt: timestamp("updated_at")
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date()),
+});
