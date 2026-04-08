@@ -11,6 +11,7 @@ const envSchema = z.object({
 	DATABASE_URL: z.string(),
 	GITHUB_CLIENT_ID: z.string(),
 	GITHUB_CLIENT_SECRET: z.string(),
+	REDIS_URL: z.string().default("redis://localhost:6379"),
 });
 
 const env = envSchema.parse(process.env);
@@ -39,5 +40,8 @@ export const config = {
 	},
 	db: {
 		databaseUrl: env.DATABASE_URL,
+	},
+	redis: {
+		url: env.REDIS_URL,
 	},
 } as const;
