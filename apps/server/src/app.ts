@@ -5,6 +5,7 @@ import type {
 } from "@fastify/type-provider-json-schema-to-ts";
 import Fastify from "fastify";
 import { registerAuthRoutes } from "./modules/auth/index.js";
+import { registerCommentRoutes } from "./modules/comment/index.js";
 import { registerProjectRoutes } from "./modules/project/index.js";
 import { registerTaskRoutes } from "./modules/task/index.js";
 import { registerWorkspaceRoutes } from "./modules/workspace/index.js";
@@ -48,4 +49,5 @@ const appRoutes: FastifyPluginAsyncJsonSchemaToTs = async (app) => {
 	app.register(registerWorkspaceRoutes);
 	app.register(registerProjectRoutes);
 	app.register(registerTaskRoutes);
+	app.register(registerCommentRoutes);
 };
