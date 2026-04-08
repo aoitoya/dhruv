@@ -20,6 +20,11 @@ import { registerCors } from "./plugins/cors.js";
 export function buildApp() {
 	const app = Fastify({
 		logger: true,
+		ajv: {
+			customOptions: {
+				removeAdditional: false,
+			},
+		},
 	}).withTypeProvider<JsonSchemaToTsProvider>();
 
 	app.register(sensible);

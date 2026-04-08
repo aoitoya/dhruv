@@ -22,37 +22,39 @@ export class TaskService {
 			parentTaskId?: string;
 		},
 	) {
-		const maxPositionResult = await db
-			.select({ position: task.position })
-			.from(task)
-			.where(
-				and(
-					eq(task.projectId, projectId),
-					data?.status ? eq(task.status, data.status) : undefined,
-				),
-			)
-			.orderBy(sql`${task.position} desc`)
-			.limit(1);
+		return await db.transaction(async (tx) => {
+			const maxPositionResult = await tx
+				.select({ position: task.position })
+				.from(task)
+				.where(
+					and(
+						eq(task.projectId, projectId),
+						data?.status ? eq(task.status, data.status) : undefined,
+					),
+				)
+				.orderBy(sql`${task.position} desc`)
+				.limit(1);
 
-		const position = (maxPositionResult[0]?.position ?? 0) + 1000;
+			const position = (maxPositionResult[0]?.position ?? 0) + 1000;
 
-		const [createdTask] = await db
-			.insert(task)
-			.values({
-				projectId,
-				title,
-				createdBy,
-				description: data?.description,
-				status: data?.status ?? "todo",
-				priority: data?.priority,
-				assigneeId: data?.assigneeId,
-				dueDate: data?.dueDate,
-				parentTaskId: data?.parentTaskId,
-				position,
-			})
-			.returning();
+			const [createdTask] = await tx
+				.insert(task)
+				.values({
+					projectId,
+					title,
+					createdBy,
+					description: data?.description,
+					status: data?.status ?? "TODO",
+					priority: data?.priority,
+					assigneeId: data?.assigneeId,
+					dueDate: data?.dueDate,
+					parentTaskId: data?.parentTaskId,
+					position,
+				})
+				.returning();
 
-		return createdTask;
+			return createdTask;
+		});
 	}
 
 	async getById(id: string) {
@@ -169,35 +171,23 @@ export class TaskService {
 		return !!projectMemberRow;
 	}
 
-	async reorder(taskId: string, newPosition: number) {
-		const [updated] = await db
-			.update(task)
-			.set({ position: newPosition })
-			.where(eq(task.id, taskId))
-			.returning();
-
-		return updated;
-	}
-
 	async reindex(
 		projectId: string,
 		status: (typeof taskStatus.enumValues)[number],
 	) {
 		const tasks = await db
-			.select({ id: task.id, position: task.position })
+			.select({ id: task.id })
 			.from(task)
 			.where(and(eq(task.projectId, projectId), eq(task.status, status)))
 			.orderBy(task.position);
 
-		let position = 1000;
-		for (const t of tasks) {
-			if (t.position - position < 1) {
-				position = t.position + 1000;
-				await db.update(task).set({ position }).where(eq(task.id, t.id));
-			} else {
-				position = t.position;
+		await db.transaction(async (tx) => {
+			let position = 1000;
+			for (const t of tasks) {
+				await tx.update(task).set({ position }).where(eq(task.id, t.id));
+				position += 1000;
 			}
-		}
+		});
 	}
 }
 
