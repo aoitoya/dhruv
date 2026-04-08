@@ -32,7 +32,6 @@ class Project {
 				.returning();
 
 			if (!newProject) {
-				tx.rollback();
 				throw new Error("Could not create project");
 			}
 
