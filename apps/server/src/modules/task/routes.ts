@@ -259,4 +259,46 @@ export const registerTaskRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 			reply.send({ success: true, data: subtasks });
 		},
 	);
+
+	app.patch(
+		"/tasks/:id/reorder",
+		{
+			schema: {
+				params: {
+					type: "object",
+					properties: {
+						id: { type: "string", format: "uuid" },
+					},
+					required: ["id"],
+				},
+				body: {
+					type: "object",
+					properties: {
+						position: { type: "integer" },
+					},
+					required: ["position"],
+				},
+			},
+		},
+		async (request, reply) => {
+			const session = (request as AuthenticatedRequest).session;
+			const userId = session.user.id;
+			const taskId = request.params.id;
+
+			const task = await taskService.getById(taskId);
+			if (!task) {
+				reply.status(404).send({ success: false, error: "NOT_FOUND" });
+				return;
+			}
+
+			const isMember = await projectService.isMember(task.projectId, userId);
+			if (!isMember) {
+				reply.status(403).send({ success: false, error: "FORBIDDEN" });
+				return;
+			}
+
+			const updated = await taskService.reorder(taskId, request.body.position);
+			reply.send({ success: true, data: updated });
+		},
+	);
 };

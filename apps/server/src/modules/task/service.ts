@@ -189,6 +189,16 @@ export class TaskService {
 			}
 		});
 	}
+
+	async reorder(id: string, position: number) {
+		const [updated] = await db
+			.update(task)
+			.set({ position })
+			.where(eq(task.id, id))
+			.returning();
+
+		return updated;
+	}
 }
 
 export const taskService = new TaskService();

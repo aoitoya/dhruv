@@ -468,4 +468,70 @@ describe("Task:", () => {
 		await db.delete(task).where(eq(task.id, parentId));
 		await cleanupWorkspace(workspace.id);
 	});
+
+	test("project member can reorder task", async () => {
+		const workspace = await createWorkspace(ownerCookies);
+		const projectData = await createProject(workspace.id, ownerCookies);
+
+		const task1 = await app.inject({
+			method: "POST",
+			url: `/api/projects/${projectData.id}/tasks`,
+			body: { title: "Task 1" },
+			cookies: ownerCookies,
+		});
+		const task1Data = JSON.parse(task1.body);
+
+		const task2 = await app.inject({
+			method: "POST",
+			url: `/api/projects/${projectData.id}/tasks`,
+			body: { title: "Task 2" },
+			cookies: ownerCookies,
+		});
+		const task2Data = JSON.parse(task2.body);
+
+		expect(task1Data.data.position).toBe(1000);
+		expect(task2Data.data.position).toBe(2000);
+
+		const res = await app.inject({
+			method: "PATCH",
+			url: `/api/tasks/${task1Data.data.id}/reorder`,
+			body: { position: 5000 },
+			cookies: ownerCookies,
+		});
+
+		expect(res.statusCode).toBe(200);
+		const body = JSON.parse(res.body);
+		expect(body.data.position).toBe(5000);
+
+		await db.delete(task).where(eq(task.id, task1Data.data.id));
+		await db.delete(task).where(eq(task.id, task2Data.data.id));
+		await cleanupWorkspace(workspace.id);
+	});
+
+	test("non-member cannot reorder task", async () => {
+		const workspace = await createWorkspace(ownerCookies);
+		const projectData = await createProject(workspace.id, ownerCookies);
+		const { user: otherUser, cookies: otherCookies } = await createUser();
+
+		const taskRes = await app.inject({
+			method: "POST",
+			url: `/api/projects/${projectData.id}/tasks`,
+			body: { title: "Test Task" },
+			cookies: ownerCookies,
+		});
+		const taskData = JSON.parse(taskRes.body);
+
+		const res = await app.inject({
+			method: "PATCH",
+			url: `/api/tasks/${taskData.data.id}/reorder`,
+			body: { position: 5000 },
+			cookies: otherCookies,
+		});
+
+		expect(res.statusCode).toBe(403);
+
+		await db.delete(task).where(eq(task.id, taskData.data.id));
+		await cleanupWorkspace(workspace.id);
+		await cleanupUser(otherUser.id);
+	});
 });
