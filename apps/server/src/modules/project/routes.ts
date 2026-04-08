@@ -71,12 +71,9 @@ export const registerProjectRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 			const userId = session.user.id;
 			const workspaceId = request.params.workspaceId;
 
-			const isAdminOrOwner = await workspaceService.isOwner(
-				workspaceId,
-				userId,
-			);
+			const isOwner = await workspaceService.isOwner(workspaceId, userId);
 
-			if (!isAdminOrOwner) {
+			if (!isOwner) {
 				reply.status(403).send({ success: false, error: "FORBIDDEN" });
 				return;
 			}
