@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+	type AnyPgColumn,
 	date,
 	integer,
 	pgEnum,
@@ -12,17 +13,17 @@ import { user } from "./auth.js";
 import { project } from "./project.js";
 
 export const taskStatus = pgEnum("task_status", [
-	"todo",
-	"in_progress",
-	"in_review",
-	"done",
+	"TODO",
+	"IN_PROGRESS",
+	"IN_REVIEW",
+	"DONE",
 ]);
 
 export const taskPriority = pgEnum("task_priority", [
-	"critical",
-	"high",
-	"medium",
-	"low",
+	"CRITICAL",
+	"HIGH",
+	"MEDIUM",
+	"LOW",
 ]);
 
 export const task = pgTable("task", {
@@ -30,12 +31,12 @@ export const task = pgTable("task", {
 	projectId: uuid("project_id")
 		.notNull()
 		.references(() => project.id, { onDelete: "cascade" }),
-	parentTaskId: uuid("parent_task_id").references((): any => task.id, {
+	parentTaskId: uuid("parent_task_id").references((): AnyPgColumn => task.id, {
 		onDelete: "cascade",
 	}),
 	title: text("title").notNull(),
 	description: text("description"),
-	status: taskStatus("status").notNull().default("todo"),
+	status: taskStatus("status").notNull().default("TODO"),
 	priority: taskPriority("priority"),
 	assigneeId: text("assignee_id").references(() => user.id, {
 		onDelete: "set null",

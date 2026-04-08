@@ -28,11 +28,11 @@ export const registerTaskRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 						description: { type: "string" },
 						status: {
 							type: "string",
-							enum: ["todo", "in_progress", "in_review", "done"],
+							enum: ["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"],
 						},
 						priority: {
 							type: "string",
-							enum: ["critical", "high", "medium", "low"],
+							enum: ["CRITICAL", "HIGH", "MEDIUM", "LOW"],
 						},
 						assigneeId: { type: "string" },
 						dueDate: { type: "string", format: "date" },
@@ -152,11 +152,11 @@ export const registerTaskRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 						description: { type: "string" },
 						status: {
 							type: "string",
-							enum: ["todo", "in_progress", "in_review", "done"],
+							enum: ["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"],
 						},
 						priority: {
 							type: "string",
-							enum: ["critical", "high", "medium", "low"],
+							enum: ["CRITICAL", "HIGH", "MEDIUM", "LOW"],
 						},
 						assigneeId: { type: "string" },
 						dueDate: { type: "string", format: "date" },
