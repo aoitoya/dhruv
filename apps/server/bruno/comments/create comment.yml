@@ -1,0 +1,21 @@
+info:
+  name: create comment
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/tasks/{{taskId}}/comments"
+  body:
+    type: json
+    data: |-
+      {
+        "content": "This is a comment"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
