@@ -9,7 +9,7 @@ function RouteComponent() {
 	return (
 		<div>
 			<Layout>
-				<div>hello</div>
+				<div>Dashboard</div>
 			</Layout>
 		</div>
 	);

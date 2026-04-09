@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UserRouteImport } from './routes/user'
+import { Route as TaskRouteImport } from './routes/task'
 import { Route as IndexRouteImport } from './routes/index'
 
 const UserRoute = UserRouteImport.update({
   id: '/user',
   path: '/user',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TaskRoute = TaskRouteImport.update({
+  id: '/task',
+  path: '/task',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -25,27 +31,31 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/task': typeof TaskRoute
   '/user': typeof UserRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/task': typeof TaskRoute
   '/user': typeof UserRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/task': typeof TaskRoute
   '/user': typeof UserRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/user'
+  fullPaths: '/' | '/task' | '/user'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/user'
-  id: '__root__' | '/' | '/user'
+  to: '/' | '/task' | '/user'
+  id: '__root__' | '/' | '/task' | '/user'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  TaskRoute: typeof TaskRoute
   UserRoute: typeof UserRoute
 }
 
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/user'
       fullPath: '/user'
       preLoaderRoute: typeof UserRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/task': {
+      id: '/task'
+      path: '/task'
+      fullPath: '/task'
+      preLoaderRoute: typeof TaskRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  TaskRoute: TaskRoute,
   UserRoute: UserRoute,
 }
 export const routeTree = rootRouteImport
