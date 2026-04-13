@@ -1,9 +1,10 @@
 import { Bell } from "lucide-react";
+import type { SessionType } from "@/lib/auth";
 import ProfileBtn from "../ui/ProfileBtn";
 import SearchBar from "../ui/SearchBar";
 import NavBar from "./NavBar";
 
-export default function Title() {
+export default function Title({ userData }: { userData: SessionType }) {
 	return (
 		<nav className="flex items-center justify-between px-8 py-3 opacity-80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50 dark:border-border">
 			{/* LEFT SIDE: Logo & Search */}
@@ -36,7 +37,7 @@ export default function Title() {
 					</button>
 				</div>
 
-				<ProfileBtn />
+				<ProfileBtn userData={userData} />
 			</div>
 		</nav>
 	);

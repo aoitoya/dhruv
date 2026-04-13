@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import {
 	type ChangeEvent,
@@ -6,6 +6,7 @@ import {
 	useCallback,
 	useState,
 } from "react";
+import { FcGoogle } from "react-icons/fc";
 import { IoLogoGithub as Github } from "react-icons/io";
 import { Button } from "@/components/ui/button";
 import {
@@ -68,7 +69,10 @@ function AuthPage() {
 					});
 				} else {
 					await authClient.signIn.email(formData, {
-						onSuccess: () => setIsLoading(false),
+						onSuccess: () => {
+							Navigate({ to: "/app" });
+							setIsLoading(false);
+						},
 						onResponse: () => setIsLoading(false),
 					});
 				}
@@ -91,6 +95,21 @@ function AuthPage() {
 			});
 		} catch (error) {
 			console.error("GitHub auth error:", error);
+			setIsLoading(false);
+		}
+	}, []);
+
+	const handleGoogleSignIn = useCallback(async () => {
+		setIsLoading(true);
+		try {
+			await authClient.signIn.social({
+				provider: "google",
+				callbackURL: `${import.meta.env.VITE_CLIENT_URL}/app`,
+				errorCallbackURL: `${import.meta.env.VITE_CLIENT_URL}/`,
+				newUserCallbackURL: `${import.meta.env.VITE_CLIENT_URL}/app`,
+			});
+		} catch (error) {
+			console.error("Google auth error:", error);
 			setIsLoading(false);
 		}
 	}, []);
@@ -179,6 +198,17 @@ function AuthPage() {
 						>
 							<Github className="mr-2 size-4" />
 							GitHub
+						</Button>
+						<Button
+							type="button"
+							variant="outline"
+							className="w-full"
+							size="lg"
+							onClick={handleGoogleSignIn}
+							disabled={isLoading}
+						>
+							<FcGoogle className="mr-2 size-4" />
+							Google
 						</Button>
 					</CardContent>
 				</Card>

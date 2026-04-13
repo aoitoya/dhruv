@@ -1,8 +1,9 @@
+import { useNavigate } from "@tanstack/react-router";
 import { CgProfile } from "react-icons/cg";
 import { IoIosLogOut } from "react-icons/io";
 import { IoSettingsOutline } from "react-icons/io5";
+import authClient, { type SessionType } from "@/lib/auth";
 import { Avatar, AvatarBadge, AvatarFallback, AvatarImage } from "./avatar";
-
 import {
 	MenubarContent,
 	MenubarItem,
@@ -11,13 +12,31 @@ import {
 	MenubarTrigger,
 } from "./menubar";
 
-export default function ProfileBtn() {
+export default function ProfileBtn({ userData }: { userData: SessionType }) {
+	const navigate = useNavigate();
+	const handleLogout = async () => {
+		await authClient.signOut();
+		navigate({ to: "/" });
+	};
+	const name = userData.user.name;
+
+	const session = authClient.useSession();
+	if (!session.data) {
+		return;
+	}
+
+	const notImg = name
+		.split(" ")
+		.map((word) => word[0])
+		.join("")
+		.toUpperCase();
+
 	return (
 		<MenubarMenu>
 			<MenubarTrigger className="flex gap-2 cursor-pointer">
 				<Avatar>
-					<AvatarImage src="" />
-					<AvatarFallback>CN</AvatarFallback>
+					<AvatarImage src={session.data.user.image ?? ""} />
+					<AvatarFallback>{notImg}</AvatarFallback>
 					<AvatarBadge className="bg-green-600 dark:bg-green-400" />
 				</Avatar>
 
@@ -40,7 +59,7 @@ export default function ProfileBtn() {
 					Setting
 				</MenubarItem>
 				<MenubarSeparator />
-				<MenubarItem variant="destructive">
+				<MenubarItem variant="destructive" onClick={handleLogout}>
 					<IoIosLogOut />
 					Logout
 				</MenubarItem>
