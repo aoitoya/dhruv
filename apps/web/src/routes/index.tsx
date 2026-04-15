@@ -1,4 +1,4 @@
-import { createFileRoute, Navigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import {
 	type ChangeEvent,
@@ -48,6 +48,7 @@ function AuthPage() {
 	const [formData, setFormData] = useState(initialFormData);
 	const [isLoading, setIsLoading] = useState(false);
 	const [activeTab, setActiveTab] = useState<AuthTab>("signin");
+	const navigate = useNavigate();
 
 	const handleInputChange = useCallback(
 		(field: keyof typeof formData) => (e: ChangeEvent<HTMLInputElement>) => {
@@ -70,7 +71,7 @@ function AuthPage() {
 				} else {
 					await authClient.signIn.email(formData, {
 						onSuccess: () => {
-							Navigate({ to: "/app" });
+							navigate({ to: "/app" });
 							setIsLoading(false);
 						},
 						onResponse: () => setIsLoading(false),
@@ -81,7 +82,7 @@ function AuthPage() {
 				setIsLoading(false);
 			}
 		},
-		[activeTab, formData],
+		[activeTab, formData, navigate],
 	);
 
 	const handleGitHubSignIn = useCallback(async () => {
