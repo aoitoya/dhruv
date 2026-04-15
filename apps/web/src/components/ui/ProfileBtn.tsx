@@ -1,8 +1,10 @@
 import { useNavigate } from "@tanstack/react-router";
+import { useAtom } from "jotai";
 import { CgProfile } from "react-icons/cg";
 import { IoIosLogOut } from "react-icons/io";
 import { IoSettingsOutline } from "react-icons/io5";
-import authClient, { type SessionType } from "@/lib/auth";
+import authClient from "@/lib/auth";
+import { userAtom } from "@/states/user";
 import { Avatar, AvatarBadge, AvatarFallback, AvatarImage } from "./avatar";
 import {
 	MenubarContent,
@@ -12,18 +14,20 @@ import {
 	MenubarTrigger,
 } from "./menubar";
 
-export default function ProfileBtn({ userData }: { userData: SessionType }) {
+export default function ProfileBtn() {
+	const [user] = useAtom(userAtom);
+
 	const navigate = useNavigate();
 	const handleLogout = async () => {
 		await authClient.signOut();
 		navigate({ to: "/" });
 	};
-	const name = userData.user.name;
 
-	const session = authClient.useSession();
-	if (!session.data) {
-		return;
+	if (!user) {
+		return null;
 	}
+
+	const name = user.name;
 
 	const notImg = name
 		.split(" ")
@@ -35,7 +39,7 @@ export default function ProfileBtn({ userData }: { userData: SessionType }) {
 		<MenubarMenu>
 			<MenubarTrigger className="flex gap-2 cursor-pointer">
 				<Avatar>
-					<AvatarImage src={session.data.user.image ?? ""} />
+					<AvatarImage src={user.image ?? ""} />
 					<AvatarFallback>{notImg}</AvatarFallback>
 					<AvatarBadge className="bg-green-600 dark:bg-green-400" />
 				</Avatar>

@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Home } from "lucide-react";
 
 export default function NavBar() {
-	const navLink = [
+	const _navLink = [
 		{
 			name: "Dashboard",
 			icon: Home,
