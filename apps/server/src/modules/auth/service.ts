@@ -29,10 +29,8 @@ export const auth = betterAuth({
 		enabled: true,
 	},
 	socialProviders: {
-		github: {
-			clientId: config.auth.github.clientId,
-			clientSecret: config.auth.github.clientSecret,
-		},
+		github: config.auth.github,
+		google: config.auth.google,
 	},
 	cors: {
 		origin: config.cors.origins,

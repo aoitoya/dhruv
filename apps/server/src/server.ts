@@ -1,5 +1,6 @@
 import { buildApp } from "./app.js";
 import { config } from "./config/index.js";
+import { checkDbConnection } from "./db/index.js";
 
 /**
  * Starts the server by building the application and listening on the host and port from `config`.
@@ -8,6 +9,8 @@ import { config } from "./config/index.js";
  */
 async function start() {
 	const app = buildApp();
+
+	await checkDbConnection();
 
 	try {
 		await app.listen({

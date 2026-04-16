@@ -1,6 +1,7 @@
-import { Bell, Home } from "lucide-react";
+import { Bell } from "lucide-react";
 import ProfileBtn from "../ui/ProfileBtn";
 import SearchBar from "../ui/SearchBar";
+import NavBar from "./NavBar";
 
 export default function Title() {
 	return (
@@ -17,12 +18,7 @@ export default function Title() {
 				</div>
 
 				{/* Simple Navigation */}
-				<ul className="hidden md:flex items-center gap-8">
-					<li className="flex items-center gap-2 text-sm font-semibold text-primary cursor-pointer">
-						<Home size={18} />
-						<span>Home</span>
-					</li>
-				</ul>
+				<NavBar />
 			</div>
 
 			{/* RIGHT SIDE: Actions & Profile */}
@@ -38,43 +34,8 @@ export default function Title() {
 						<Bell size={20} />
 						<span className="absolute top-2 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white dark:border-border" />
 					</button>
-
-					{/* <button
-						type="button"
-						className="p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors"
-					>
-						<Settings size={20} />
-					</button> */}
 				</div>
 
-				{/* Profile Section */}
-				{/* <button
-					type="button"
-					className="flex items-center gap-3 pl-2  p-1 rounded-xl transition-all group"
-				>
-					<div className="relative">
-						<img
-							src="https://ui-avatars.com/api/?name=Alex+Smith&background=6366f1&color=fff"
-							alt="Profile"
-							className="w-9 h-9 rounded-full object-cover border border-gray-200"
-						/>
-						<div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></div>
-					</div>
-
-					<div className="hidden lg:block text-left">
-						<p className="text-sm font-bold text-gray-700 leading-tight">
-							Alex Smith
-						</p>
-						<p className="text-[11px] font-medium text-gray-400">
-							Premium Plan
-						</p>
-					</div>
-
-					<ChevronDown
-						size={14}
-						className="text-gray-400 group-hover:text-gray-600"
-					/>
-				</button> */}
 				<ProfileBtn />
 			</div>
 		</nav>

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import {
 	type ChangeEvent,
@@ -6,6 +6,7 @@ import {
 	useCallback,
 	useState,
 } from "react";
+import { FcGoogle } from "react-icons/fc";
 import { IoLogoGithub as Github } from "react-icons/io";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,6 +48,7 @@ function AuthPage() {
 	const [formData, setFormData] = useState(initialFormData);
 	const [isLoading, setIsLoading] = useState(false);
 	const [activeTab, setActiveTab] = useState<AuthTab>("signin");
+	const navigate = useNavigate();
 
 	const handleInputChange = useCallback(
 		(field: keyof typeof formData) => (e: ChangeEvent<HTMLInputElement>) => {
@@ -68,7 +70,10 @@ function AuthPage() {
 					});
 				} else {
 					await authClient.signIn.email(formData, {
-						onSuccess: () => setIsLoading(false),
+						onSuccess: () => {
+							navigate({ to: "/app" });
+							setIsLoading(false);
+						},
 						onResponse: () => setIsLoading(false),
 					});
 				}
@@ -77,7 +82,7 @@ function AuthPage() {
 				setIsLoading(false);
 			}
 		},
-		[activeTab, formData],
+		[activeTab, formData, navigate],
 	);
 
 	const handleGitHubSignIn = useCallback(async () => {
@@ -91,6 +96,21 @@ function AuthPage() {
 			});
 		} catch (error) {
 			console.error("GitHub auth error:", error);
+			setIsLoading(false);
+		}
+	}, []);
+
+	const handleGoogleSignIn = useCallback(async () => {
+		setIsLoading(true);
+		try {
+			await authClient.signIn.social({
+				provider: "google",
+				callbackURL: `${import.meta.env.VITE_CLIENT_URL}/app`,
+				errorCallbackURL: `${import.meta.env.VITE_CLIENT_URL}/`,
+				newUserCallbackURL: `${import.meta.env.VITE_CLIENT_URL}/app`,
+			});
+		} catch (error) {
+			console.error("Google auth error:", error);
 			setIsLoading(false);
 		}
 	}, []);
@@ -179,6 +199,17 @@ function AuthPage() {
 						>
 							<Github className="mr-2 size-4" />
 							GitHub
+						</Button>
+						<Button
+							type="button"
+							variant="outline"
+							className="w-full"
+							size="lg"
+							onClick={handleGoogleSignIn}
+							disabled={isLoading}
+						>
+							<FcGoogle className="mr-2 size-4" />
+							Google
 						</Button>
 					</CardContent>
 				</Card>

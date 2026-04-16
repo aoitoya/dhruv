@@ -7,7 +7,7 @@
 	"scripts": {
 		"dev": "NODE_ENV=development tsx watch --env-file=.env src/server.ts",
 		"build": "tsc",
-		"start": "NODE_ENV=production node dist/server.js",
+		"start": "NODE_ENV=production node --env-file=.env dist/server.js",
 		"check-types": "tsc --noEmit",
 		"lint": "biome check --write .",
 		"test": "vitest run",
