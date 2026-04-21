@@ -209,7 +209,7 @@ describe("Workspace:", () => {
 		const res = await app.inject({
 			method: "POST",
 			url: `/api/workspaces/${workspace.id}/invite`,
-			body: { userIds: [secondUser.id] },
+			body: { email: secondUser.email, role: "MEMBER" },
 			cookies,
 		});
 
@@ -228,7 +228,7 @@ describe("Workspace:", () => {
 		await app.inject({
 			method: "POST",
 			url: `/api/workspaces/${workspace.id}/invite`,
-			body: { userIds: [secondUser.id] },
+			body: { email: secondUser.email, role: "MEMBER" },
 			cookies,
 		});
 
@@ -261,7 +261,7 @@ describe("Workspace:", () => {
 		await app.inject({
 			method: "POST",
 			url: `/api/workspaces/${workspace.id}/invite`,
-			body: { userIds: [secondUser.id] },
+			body: { email: secondUser.email, role: "MEMBER" },
 			cookies,
 		});
 
@@ -294,7 +294,7 @@ describe("Workspace:", () => {
 		await app.inject({
 			method: "POST",
 			url: `/api/workspaces/${workspace.id}/invite`,
-			body: { userIds: [secondUser.id] },
+			body: { email: secondUser.email, role: "MEMBER" },
 			cookies,
 		});
 
@@ -332,7 +332,7 @@ describe("Workspace:", () => {
 		await app.inject({
 			method: "POST",
 			url: `/api/workspaces/${workspace.id}/invite`,
-			body: { userIds: [secondUser.id] },
+			body: { email: secondUser.email, role: "MEMBER" },
 			cookies,
 		});
 
@@ -389,7 +389,7 @@ describe("Workspace:", () => {
 		await app.inject({
 			method: "POST",
 			url: `/api/workspaces/${workspace.id}/invite`,
-			body: { userIds: [secondUser.id] },
+			body: { email: secondUser.email, role: "MEMBER" },
 			cookies,
 		});
 
@@ -404,7 +404,7 @@ describe("Workspace:", () => {
 		await app.inject({
 			method: "POST",
 			url: `/api/workspaces/${workspace.id}/invite`,
-			body: { userIds: [adminUser.id] },
+			body: { email: adminUser.email, role: "MEMBER" },
 			cookies,
 		});
 		await app.inject({
@@ -425,7 +425,7 @@ describe("Workspace:", () => {
 		const inviteRes = await app.inject({
 			method: "POST",
 			url: `/api/workspaces/${workspace.id}/invite`,
-			body: { userIds: [memberUser.id] },
+			body: { email: memberUser.email, role: "MEMBER" },
 			cookies: adminCookies,
 		});
 
@@ -444,7 +444,7 @@ describe("Workspace:", () => {
 		await app.inject({
 			method: "POST",
 			url: `/api/workspaces/${workspace.id}/invite`,
-			body: { userIds: [secondUser.id] },
+			body: { email: secondUser.email, role: "MEMBER" },
 			cookies,
 		});
 		await app.inject({
@@ -477,7 +477,7 @@ describe("Workspace:", () => {
 		await app.inject({
 			method: "POST",
 			url: `/api/workspaces/${workspace.id}/invite`,
-			body: { userIds: [secondUser.id] },
+			body: { email: secondUser.email, role: "MEMBER" },
 			cookies,
 		});
 		await app.inject({
@@ -491,7 +491,7 @@ describe("Workspace:", () => {
 		await app.inject({
 			method: "POST",
 			url: `/api/workspaces/${workspace.id}/invite`,
-			body: { userIds: [adminUser.id] },
+			body: { email: adminUser.email, role: "MEMBER" },
 			cookies,
 		});
 		await app.inject({
@@ -527,7 +527,7 @@ describe("Workspace:", () => {
 		await app.inject({
 			method: "POST",
 			url: `/api/workspaces/${workspace.id}/invite`,
-			body: { userIds: [adminUser.id] },
+			body: { email: adminUser.email, role: "MEMBER" },
 			cookies,
 		});
 		await app.inject({
@@ -562,7 +562,7 @@ describe("Workspace:", () => {
 		await app.inject({
 			method: "POST",
 			url: `/api/workspaces/${workspace.id}/invite`,
-			body: { userIds: [adminUser.id] },
+			body: { email: adminUser.email, role: "MEMBER" },
 			cookies,
 		});
 		await app.inject({
@@ -583,7 +583,7 @@ describe("Workspace:", () => {
 		await app.inject({
 			method: "POST",
 			url: `/api/workspaces/${workspace.id}/invite`,
-			body: { userIds: [secondAdmin.id] },
+			body: { email: secondAdmin.email, role: "MEMBER" },
 			cookies,
 		});
 		await app.inject({
@@ -619,7 +619,7 @@ describe("Workspace:", () => {
 		await app.inject({
 			method: "POST",
 			url: `/api/workspaces/${workspace.id}/invite`,
-			body: { userIds: [memberUser.id] },
+			body: { email: memberUser.email, role: "MEMBER" },
 			cookies,
 		});
 		await app.inject({
@@ -649,7 +649,7 @@ describe("Workspace:", () => {
 		await app.inject({
 			method: "POST",
 			url: `/api/workspaces/${workspace.id}/invite`,
-			body: { userIds: [newOwner.id] },
+			body: { email: newOwner.email, role: "MEMBER" },
 			cookies,
 		});
 		await app.inject({
@@ -694,7 +694,7 @@ describe("Workspace:", () => {
 		await app.inject({
 			method: "POST",
 			url: `/api/workspaces/${workspace.id}/invite`,
-			body: { userIds: [memberUser.id] },
+			body: { email: memberUser.email, role: "MEMBER" },
 			cookies,
 		});
 		await app.inject({

@@ -7,6 +7,7 @@ import Fastify from "fastify";
 import { registerAuthRoutes } from "./modules/auth/index.js";
 import { registerCommentRoutes } from "./modules/comment/index.js";
 import { registerProjectRoutes } from "./modules/project/index.js";
+import { registerTagRoutes } from "./modules/tag/index.js";
 import { registerTaskRoutes } from "./modules/task/index.js";
 import { registerWorkspaceRoutes } from "./modules/workspace/index.js";
 import { registerCors } from "./plugins/cors.js";
@@ -50,4 +51,5 @@ const appRoutes: FastifyPluginAsyncJsonSchemaToTs = async (app) => {
 	app.register(registerProjectRoutes);
 	app.register(registerTaskRoutes);
 	app.register(registerCommentRoutes);
+	app.register(registerTagRoutes);
 };

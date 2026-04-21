@@ -67,7 +67,7 @@ export const workspaceInvite = pgTable(
 			.references(() => workspace.id, { onDelete: "cascade" }),
 		email: text("email").notNull(),
 		role: workspaceRole("role").notNull().default("MEMBER"),
-		invitedBy: uuid("invited_by").references(() => user.id, {
+		invitedBy: text("invited_by").references(() => user.id, {
 			onDelete: "set null",
 		}),
 		tokenHash: text("token_hash").notNull(),

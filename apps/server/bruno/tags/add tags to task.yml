@@ -1,0 +1,26 @@
+info:
+  name: add tags to task
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/tasks/{{taskId}}/tags"
+  body:
+    type: json
+    data: |-
+      {
+        "tagIds": ["uuid1", "uuid2"]
+      }
+  auth: inherit
+
+runtime:
+  variables:
+    - name: taskId
+      value: ""
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

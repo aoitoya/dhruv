@@ -1,0 +1,20 @@
+info:
+  name: delete tag
+  type: http
+  seq: 4
+
+http:
+  method: DELETE
+  url: "{{baseUrl}}/api/tags/{{tagId}}"
+  auth: inherit
+
+runtime:
+  variables:
+    - name: tagId
+      value: ""
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

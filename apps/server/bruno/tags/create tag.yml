@@ -1,0 +1,27 @@
+info:
+  name: create tag
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/workspaces/{{workspaceId}}/tags"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Bug",
+        "color": "#ef4444"
+      }
+  auth: inherit
+
+runtime:
+  variables:
+    - name: workspaceId
+      value: ""
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

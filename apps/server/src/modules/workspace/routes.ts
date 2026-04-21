@@ -222,7 +222,13 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 
 			const { token, hash } = generateRandomToken();
 
-			await workspaceService.inviteMembers(workspaceId, email, role, hash);
+			await workspaceService.inviteMembers(
+				workspaceId,
+				email,
+				role,
+				hash,
+				userId,
+			);
 			await sendInviteEmail(email, token, workspace.name, inviterName, role);
 
 			reply.send({ success: true });
