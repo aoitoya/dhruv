@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
 	return {
 		plugins: [
 			tailwindcss(),
-			tanstackRouter({ target: "react" }),
+			tanstackRouter({ target: "react", autoCodeSplitting: true }),
 			react(),
 			babel({ presets: [reactCompilerPreset()] }),
 		],

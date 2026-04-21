@@ -5,6 +5,7 @@ import {
 	workspace,
 	workspaceInvite,
 	workspaceMember,
+	type workspaceRole,
 } from "../../db/schema/index.js";
 
 class Workspace {
@@ -84,21 +85,37 @@ class Workspace {
 		await db.delete(workspace).where(eq(workspace.id, workspaceId));
 	}
 
-	async inviteMembers(workspaceId: string, userIds: string[]) {
+	async inviteMembers(
+		workspaceId: string,
+		email: string,
+		role: (typeof workspaceRole.enumValues)[number],
+		tokenHash: string,
+	) {
+		const expiresAt = new Date();
+		expiresAt.setDate(expiresAt.getDate() + 7);
+
 		await db
 			.insert(workspaceInvite)
-			.values(
-				userIds.map((userId) => ({
-					userId,
+			.values([
+				{
 					workspaceId,
-				})),
-			)
-			.onConflictDoNothing();
+					tokenHash,
+					role,
+					email,
+					expiresAt,
+				},
+			])
+			.onConflictDoUpdate({
+				target: [workspaceInvite.workspaceId, workspaceInvite.email],
+				set: { createdAt: new Date(), expiresAt, tokenHash, role },
+				targetWhere: eq(workspaceInvite.status, "PENDING"),
+			});
 	}
 
 	async responseWorkspaceInvite(
 		workspaceId: string,
 		userId: string,
+		userEmail: string,
 		action: "accept" | "reject",
 	) {
 		await db.transaction(async (tx) => {
@@ -110,14 +127,14 @@ class Workspace {
 				.where(
 					and(
 						eq(workspaceInvite.workspaceId, workspaceId),
-						eq(workspaceInvite.userId, userId),
+						eq(workspaceInvite.email, userEmail),
 						eq(workspaceInvite.status, "PENDING"),
 					),
 				)
 				.returning();
 
 			if (!invitation) {
-				throw new Error("Invitation not found or already processed");
+				throw new Error("Invalid invitation");
 			}
 
 			if (action === "reject") return;
@@ -125,7 +142,7 @@ class Workspace {
 			await tx.insert(workspaceMember).values({
 				workspaceId,
 				userId,
-				role: "MEMBER",
+				role: invitation.role,
 			});
 		});
 	}
@@ -194,34 +211,65 @@ class Workspace {
 		return db
 			.select({
 				workspaceId: workspaceInvite.workspaceId,
-				userId: workspaceInvite.userId,
-				status: workspaceInvite.status,
+				role: workspaceInvite.role,
+				statu: workspaceInvite.status,
 				createdAt: workspaceInvite.createdAt,
-				userName: user.name,
-				userEmail: user.email,
-			})
-			.from(workspaceInvite)
-			.where(eq(workspaceInvite.workspaceId, workspaceId))
-			.leftJoin(user, eq(workspaceInvite.userId, user.id));
-	}
-
-	async getInvitesForUser(userId: string) {
-		return db
-			.select({
-				workspaceId: workspaceInvite.workspaceId,
-				userId: workspaceInvite.userId,
-				status: workspaceInvite.status,
-				createdAt: workspaceInvite.createdAt,
+				exiresAt: workspaceInvite.expiresAt,
 				workspaceName: workspace.name,
 			})
 			.from(workspaceInvite)
-			.where(
-				and(
-					eq(workspaceInvite.userId, userId),
-					eq(workspaceInvite.status, "PENDING"),
-				),
-			)
-			.leftJoin(workspace, eq(workspaceInvite.workspaceId, workspace.id));
+			.where(eq(workspaceInvite.workspaceId, workspaceId));
+	}
+
+	async getInvitesForUser(userEmail: string) {
+		return db
+			.select({
+				workspaceId: workspaceInvite.workspaceId,
+				role: workspaceInvite.role,
+				statu: workspaceInvite.status,
+				invitedBy: user.name,
+				createdAt: workspaceInvite.createdAt,
+				exiresAt: workspaceInvite.expiresAt,
+				workspaceName: workspace.name,
+			})
+			.from(workspaceInvite)
+			.where(eq(workspaceInvite.email, userEmail))
+			.leftJoin(workspace, eq(workspaceInvite.workspaceId, workspace.id))
+			.leftJoin(user, eq(user.id, workspaceInvite.invitedBy));
+	}
+
+	async getInviteByInviteId(inviteId: string) {
+		return db
+			.select({
+				workspaceId: workspaceInvite.workspaceId,
+				role: workspaceInvite.role,
+				statu: workspaceInvite.status,
+				invitedBy: user.name,
+				createdAt: workspaceInvite.createdAt,
+				exiresAt: workspaceInvite.expiresAt,
+				workspaceName: workspace.name,
+			})
+			.from(workspaceInvite)
+			.where(eq(workspaceInvite.id, inviteId))
+			.leftJoin(workspace, eq(workspaceInvite.workspaceId, workspace.id))
+			.leftJoin(user, eq(user.id, workspaceInvite.invitedBy));
+	}
+
+	async getInviteByToken(tokenHash: string) {
+		return db
+			.select({
+				workspaceId: workspaceInvite.workspaceId,
+				role: workspaceInvite.role,
+				statu: workspaceInvite.status,
+				invitedBy: user.name,
+				createdAt: workspaceInvite.createdAt,
+				exiresAt: workspaceInvite.expiresAt,
+				workspaceName: workspace.name,
+			})
+			.from(workspaceInvite)
+			.where(eq(workspaceInvite.tokenHash, tokenHash))
+			.leftJoin(workspace, eq(workspaceInvite.workspaceId, workspace.id))
+			.leftJoin(user, eq(user.id, workspaceInvite.invitedBy));
 	}
 
 	async getMembers(workspaceId: string) {

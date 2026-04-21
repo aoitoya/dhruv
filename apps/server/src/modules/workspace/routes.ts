@@ -1,13 +1,13 @@
 import type { FastifyPluginAsyncJsonSchemaToTs } from "@fastify/type-provider-json-schema-to-ts";
 import type { AuthenticatedRequest } from "../../types/fastify.js";
+import { sendInviteEmail } from "../../utils/email.js";
+import { generateRandomToken, hashToken } from "../../utils/token.js";
 import { workspaceService } from "./service.js";
 
 export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 	app,
 ) => {
-	app.addHook("onRequest", async (request, reply) => {
-		await app.requireAuth(request, reply);
-	});
+	app.addHook("onRequest", app.requireAuth);
 
 	app.get("/workspaces", async (request, reply) => {
 		const session = (request as AuthenticatedRequest).session;
@@ -187,12 +187,13 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 				body: {
 					type: "object",
 					properties: {
-						userIds: {
-							type: "array",
-							items: { type: "string" },
+						email: { type: "string", format: "email" },
+						role: {
+							type: "string",
+							enum: ["ADMIN", "MEMBER"],
 						},
 					},
-					required: ["userIds"],
+					required: ["email", "role"],
 				},
 			},
 		},
@@ -200,7 +201,9 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 			const session = (request as AuthenticatedRequest).session;
 			const userId = session.user.id;
 			const workspaceId = request.params.id;
-			const userIds = request.body.userIds;
+			const email = request.body.email;
+			const role = request.body.role;
+			const inviterName = session.user.name;
 
 			const isAdminOrOwner = await workspaceService.isAdminOrOwner(
 				workspaceId,
@@ -211,7 +214,16 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 				return;
 			}
 
-			await workspaceService.inviteMembers(workspaceId, userIds);
+			const workspace = await workspaceService.getOneById(workspaceId);
+
+			if (!workspace) {
+				throw new Error("Inconsistent database state");
+			}
+
+			const { token, hash } = generateRandomToken();
+
+			await workspaceService.inviteMembers(workspaceId, email, role, hash);
+			await sendInviteEmail(email, token, workspace.name, inviterName, role);
 
 			reply.send({ success: true });
 		},
@@ -253,12 +265,73 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 
 	app.get("/invites", async (request, reply) => {
 		const session = (request as AuthenticatedRequest).session;
-		const userId = session.user.id;
+		const userEmail = session.user.email;
 
-		const invites = await workspaceService.getInvitesForUser(userId);
+		const invites = await workspaceService.getInvitesForUser(userEmail);
 
 		reply.send({ success: true, data: invites });
 	});
+
+	app.get(
+		"/invites/:id",
+		{
+			schema: {
+				params: {
+					type: "object",
+					properties: {
+						id: {
+							type: "string",
+						},
+					},
+					required: ["id"],
+				},
+			},
+		},
+		async (request, reply) => {
+			const inviteId = request.params.id;
+
+			const invite = await workspaceService.getInviteByInviteId(inviteId);
+
+			if (!invite) {
+				throw new Error("Invitation is invalid");
+			}
+
+			reply.send({
+				success: true,
+				data: invite,
+			});
+		},
+	);
+
+	app.get(
+		"/invites/validate/:token",
+		{
+			schema: {
+				params: {
+					type: "object",
+					properties: {
+						token: { type: "string" },
+					},
+					required: ["token"],
+				},
+			},
+		},
+		async (request, reply) => {
+			const token = request.params.token;
+			const tokenHash = hashToken(token);
+
+			const invite = await workspaceService.getInviteByToken(tokenHash);
+
+			if (!invite) {
+				throw new Error("Invitation is invalid");
+			}
+
+			reply.send({
+				success: true,
+				data: invite,
+			});
+		},
+	);
 
 	app.post(
 		"/invites/:workspaceId/response",
@@ -283,12 +356,14 @@ export const registerWorkspaceRoutes: FastifyPluginAsyncJsonSchemaToTs = async (
 		async (request, reply) => {
 			const session = (request as AuthenticatedRequest).session;
 			const userId = session.user.id;
+			const userEmail = session.user.email;
 			const workspaceId = request.params.workspaceId;
 			const action = request.body.action;
 
 			await workspaceService.responseWorkspaceInvite(
 				workspaceId,
 				userId,
+				userEmail,
 				action,
 			);
 			reply.send({ success: true });

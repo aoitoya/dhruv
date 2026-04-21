@@ -62,8 +62,11 @@ async function cleanupWorkspace(workspaceId: string) {
 }
 
 async function cleanupUser(userId: string) {
-	await db.delete(workspaceInvite).where(eq(workspaceInvite.userId, userId));
+	const [usr] = await db.select().from(user).where(eq(user.id, userId));
 	await db.delete(workspaceMember).where(eq(workspaceMember.userId, userId));
+
+	if (!usr) return;
+	await db.delete(workspaceInvite).where(eq(workspaceInvite.email, usr.email));
 	await db.delete(user).where(eq(user.id, userId));
 }
 
@@ -243,7 +246,7 @@ describe("Workspace:", () => {
 		expect(body.data.length).toBeGreaterThan(0);
 		expect(
 			body.data.some(
-				(invite: WorkspaceInvite) => invite.userId === secondUser.id,
+				(invite: WorkspaceInvite) => invite.email === secondUser.email,
 			),
 		).toBe(true);
 
@@ -671,8 +674,12 @@ describe("Workspace:", () => {
 			cookies: newOwnerCookies,
 		});
 		const body = JSON.parse(verifyRes.body);
-		const originalOwner = body.data.find((m: any) => m.role === "ADMIN");
-		const newOwnerMember = body.data.find((m: any) => m.role === "OWNER");
+		const originalOwner = body.data.find(
+			(m: WorkspaceInvite) => m.role === "ADMIN",
+		);
+		const newOwnerMember = body.data.find(
+			(m: WorkspaceInvite) => m.role === "OWNER",
+		);
 		expect(originalOwner).toBeDefined();
 		expect(newOwnerMember.userId).toBe(newOwner.id);
 
