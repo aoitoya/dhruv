@@ -83,8 +83,10 @@ async function cleanupWorkspace(workspaceId: string) {
 }
 
 async function cleanupUser(userId: string) {
-	await db.delete(workspaceInvite).where(eq(workspaceInvite.userId, userId));
+	const [usr] = await db.select().from(user).where(eq(user.id, userId));
 	await db.delete(workspaceMember).where(eq(workspaceMember.userId, userId));
+	if (!usr) return;
+	await db.delete(workspaceInvite).where(eq(workspaceInvite.email, usr.email));
 	await db.delete(user).where(eq(user.id, userId));
 }
 

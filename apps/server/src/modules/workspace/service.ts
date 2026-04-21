@@ -90,6 +90,7 @@ class Workspace {
 		email: string,
 		role: (typeof workspaceRole.enumValues)[number],
 		tokenHash: string,
+		invitedByUserId: string,
 	) {
 		const expiresAt = new Date();
 		expiresAt.setDate(expiresAt.getDate() + 7);
@@ -103,6 +104,7 @@ class Workspace {
 					role,
 					email,
 					expiresAt,
+					invitedBy: invitedByUserId,
 				},
 			])
 			.onConflictDoUpdate({
@@ -211,6 +213,7 @@ class Workspace {
 		return db
 			.select({
 				workspaceId: workspaceInvite.workspaceId,
+				email: workspaceInvite.email,
 				role: workspaceInvite.role,
 				statu: workspaceInvite.status,
 				createdAt: workspaceInvite.createdAt,
@@ -218,7 +221,8 @@ class Workspace {
 				workspaceName: workspace.name,
 			})
 			.from(workspaceInvite)
-			.where(eq(workspaceInvite.workspaceId, workspaceId));
+			.where(eq(workspaceInvite.workspaceId, workspaceId))
+			.leftJoin(workspace, eq(workspaceInvite.workspaceId, workspace.id));
 	}
 
 	async getInvitesForUser(userEmail: string) {
