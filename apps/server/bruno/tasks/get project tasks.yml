@@ -8,8 +8,22 @@ http:
   url: "{{baseUrl}}/api/projects/{{projectId}}/tasks"
   auth: inherit
 
+runtime:
+  variables:
+    - name: projectId
+      value: ""
+
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Retrieves all tasks in a project.
+
+  ## Required Variables
+  - projectId (uuid): ID of the project
+
+  ## Response
+  Returns an array of task objects ordered by position.

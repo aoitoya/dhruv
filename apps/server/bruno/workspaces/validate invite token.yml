@@ -18,3 +18,13 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Validates an invite token without authenticating.
+
+  ## Required Variables
+  - token (string): The invite token from the invite link
+
+  ## Response
+  Returns workspace details if token is valid and not expired.
+  Returns 404 if token is invalid or expired.

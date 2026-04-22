@@ -20,3 +20,13 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Removes a tag from a task.
+
+  ## Required Variables
+  - taskId (uuid): ID of the task
+  - tagId (uuid): ID of the tag to remove
+
+  ## Response
+  Returns 204 No Content on success.

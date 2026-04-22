@@ -10,18 +10,37 @@ http:
     type: json
     data: |-
       {
-        "email": "saptarshimula3@gmail.com",
-        "role": "ADMIN"
+        "email": "{{inviteeEmail}}",
+        "role": "MEMBER"
       }
   auth: inherit
 
 runtime:
   variables:
     - name: workspaceId
-      value: e9925cdf-9fbe-4542-9cfe-1d367fd26799
+      value: ""
+    - name: inviteeEmail
+      value: ""
 
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Sends an email invitation to join the workspace.
+
+  ## Required Variables
+  - workspaceId (uuid): ID of the workspace
+  - inviteeEmail (string): Email of the person to invite
+
+  ## Request Body
+  - email (string, required): Invitee email address
+  - role (string, required): MEMBER, ADMIN, or OWNER
+
+  ## Response
+  Returns the created invite object with token.
+
+  ## Note
+  Use the token from response to construct a shareable invite link.

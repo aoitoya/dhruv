@@ -8,8 +8,22 @@ http:
   url: "{{baseUrl}}/api/comments/{{commentId}}"
   auth: inherit
 
+runtime:
+  variables:
+    - name: commentId
+      value: ""
+
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Deletes a comment.
+
+  ## Required Variables
+  - commentId (uuid): ID of the comment
+
+  ## Response
+  Returns 204 No Content on success.

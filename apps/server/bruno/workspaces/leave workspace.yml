@@ -1,15 +1,29 @@
 info:
   name: leave workspace
   type: http
-  seq: 13
+  seq: 15
 
 http:
   method: POST
   url: "{{baseUrl}}/api/workspaces/{{workspaceId}}/leave"
   auth: inherit
 
+runtime:
+  variables:
+    - name: workspaceId
+      value: ""
+
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Current user leaves a workspace. Owners must transfer ownership first.
+
+  ## Required Variables
+  - workspaceId (uuid): ID of the workspace
+
+  ## Response
+  Returns 204 No Content on success.

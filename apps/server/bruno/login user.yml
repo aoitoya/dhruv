@@ -10,13 +10,37 @@ http:
     type: json
     data: |-
       {
-        "email": "toya@dhruv.com",
-        "password": "password"
+        "email": "{{email}}",
+        "password": "{{password}}"
       }
   auth: inherit
+
+runtime:
+  variables:
+    - name: email
+      value: ""
+    - name: password
+      value: ""
 
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Authenticates a user with email and password.
+
+  ## Required Variables
+  - email (string): User email
+  - password (string): User password
+
+  ## Request Body
+  - email (string, required): User email
+  - password (string, required): User password
+
+  ## Response
+  Returns session token and user object.
+
+  ## Notes
+  Sets session cookie. Use for subsequent requests.

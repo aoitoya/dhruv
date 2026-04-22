@@ -14,8 +14,25 @@ http:
       }
   auth: inherit
 
+runtime:
+  variables:
+    - name: taskId
+      value: ""
+
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Updates the position of a task within its project.
+
+  ## Required Variables
+  - taskId (uuid): ID of the task
+
+  ## Request Body
+  - position (number): New position index (0 = first)
+
+  ## Response
+  Returns the updated task object.

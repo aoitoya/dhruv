@@ -12,18 +12,32 @@ http:
       {
         "name": "Updated Project Name",
         "description": "Updated description",
-        "status": "ARCHIVED",
-        "color": "#00ff00"
+        "status": "ACTIVE"
       }
   auth: inherit
 
 runtime:
   variables:
     - name: projectId
-      value: abc123
+      value: ""
 
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Updates project details.
+
+  ## Required Variables
+  - projectId (uuid): ID of the project
+
+  ## Request Body
+  - name (string, optional): Project name
+  - description (string, optional): Project description
+  - status (string, optional): ACTIVE or ARCHIVED
+  - color (string, optional): Hex color code
+
+  ## Response
+  Returns the updated project object.

@@ -14,8 +14,25 @@ http:
       }
   auth: inherit
 
+runtime:
+  variables:
+    - name: workspaceId
+      value: ""
+
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Accept or decline a workspace invitation.
+
+  ## Required Variables
+  - workspaceId (uuid): ID of the workspace
+
+  ## Request Body
+  - action (string): "accept" or "decline"
+
+  ## Response
+  Returns 204 No Content on success.

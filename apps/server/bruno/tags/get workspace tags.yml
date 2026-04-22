@@ -18,3 +18,12 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Retrieves all tags in a workspace.
+
+  ## Required Variables
+  - workspaceId (uuid): ID of the workspace
+
+  ## Response
+  Returns an array of tag objects.

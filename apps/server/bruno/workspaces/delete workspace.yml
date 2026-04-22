@@ -8,8 +8,25 @@ http:
   url: "{{baseUrl}}/api/workspaces/{{workspaceId}}"
   auth: inherit
 
+runtime:
+  variables:
+    - name: workspaceId
+      value: ""
+
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Deletes a workspace. Only workspace owners can delete.
+
+  ## Required Variables
+  - workspaceId (uuid): ID of the workspace to delete
+
+  ## Response
+  Returns 204 No Content on success.
+
+  ## Warning
+  This action is irreversible. All projects, tasks, and comments will be deleted.

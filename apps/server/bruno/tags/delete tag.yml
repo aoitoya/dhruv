@@ -18,3 +18,15 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Deletes a tag from the workspace.
+
+  ## Required Variables
+  - tagId (uuid): ID of the tag
+
+  ## Response
+  Returns 204 No Content on success.
+
+  ## Note
+  This removes the tag from all tasks, not just the workspace.

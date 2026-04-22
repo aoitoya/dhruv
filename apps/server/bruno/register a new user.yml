@@ -10,14 +10,39 @@ http:
     type: json
     data: |-
       {
-        "name": "Toya",
-        "email": "toya@dhruv.com",
-        "password": "password"
+        "name": "{{name}}",
+        "email": "{{email}}",
+        "password": "{{password}}"
       }
   auth: inherit
+
+runtime:
+  variables:
+    - name: name
+      value: ""
+    - name: email
+      value: ""
+    - name: password
+      value: ""
 
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Registers a new user account.
+
+  ## Required Variables
+  - name (string): Display name
+  - email (string): User email
+  - password (string): User password
+
+  ## Request Body
+  - name (string, required): Display name
+  - email (string, required): User email
+  - password (string, required): User password
+
+  ## Response
+  Returns the created user object and session.

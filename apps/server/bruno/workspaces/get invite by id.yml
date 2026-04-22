@@ -18,3 +18,12 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Retrieves a single invite by its ID.
+
+  ## Required Variables
+  - inviteId (uuid): ID of the invite
+
+  ## Response
+  Returns the invite object with status, email, workspace details.

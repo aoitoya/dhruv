@@ -1,7 +1,7 @@
 info:
   name: update member role
   type: http
-  seq: 12
+  seq: 13
 
 http:
   method: PATCH
@@ -14,8 +14,28 @@ http:
       }
   auth: inherit
 
+runtime:
+  variables:
+    - name: workspaceId
+      value: ""
+    - name: memberUserId
+      value: ""
+
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Updates a workspace member's role.
+
+  ## Required Variables
+  - workspaceId (uuid): ID of the workspace
+  - memberUserId (uuid): ID of the user to update
+
+  ## Request Body
+  - role (string): MEMBER, ADMIN, or OWNER
+
+  ## Response
+  Returns the updated member object.
