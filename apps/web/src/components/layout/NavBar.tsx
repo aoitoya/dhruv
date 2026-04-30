@@ -2,14 +2,6 @@ import { Link } from "@tanstack/react-router";
 import { Home } from "lucide-react";
 
 export default function NavBar() {
-	const _navLink = [
-		{
-			name: "Dashboard",
-			icon: Home,
-			link: "/app",
-		},
-	];
-
 	return (
 		<ul className="hidden md:flex items-center gap-8">
 			<Link to="/app">

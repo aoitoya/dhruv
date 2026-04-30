@@ -10,14 +10,15 @@ http:
     type: json
     data: |-
       {
-        "userIds": ["UyaiYRQZplBNUaGoBmHrzmUECJ3g0cqv"]
+        "userIds": ["3dqvvs4B6XyafDXjarqvIcdc47aFhV7F"],
+        "email": "saptarshimula3@gmail.com"
       }
   auth: inherit
 
 runtime:
   variables:
     - name: workspaceId
-      value: 792a55c9-5882-4475-bce0-f4e30060d214
+      value: e9925cdf-9fbe-4542-9cfe-1d367fd26799
 
 settings:
   encodeUrl: true
