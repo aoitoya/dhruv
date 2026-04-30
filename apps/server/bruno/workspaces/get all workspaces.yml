@@ -13,3 +13,9 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Retrieves all workspaces where the authenticated user is a member.
+
+  ## Response
+  Returns an array of workspace objects with member details.

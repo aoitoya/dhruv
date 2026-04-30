@@ -11,10 +11,19 @@ http:
 runtime:
   variables:
     - name: projectId
-      value: abc123
+      value: ""
 
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Retrieves a single project by its ID.
+
+  ## Required Variables
+  - projectId (uuid): ID of the project
+
+  ## Response
+  Returns the project object with member and task details.

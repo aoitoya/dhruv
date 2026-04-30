@@ -25,3 +25,16 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Creates a new tag in a workspace.
+
+  ## Required Variables
+  - workspaceId (uuid): ID of the workspace
+
+  ## Request Body
+  - name (string, required): Tag name
+  - color (string, optional): Hex color code (e.g., "#ef4444")
+
+  ## Response
+  Returns the created tag object.

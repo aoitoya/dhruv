@@ -11,12 +11,22 @@ http:
 runtime:
   variables:
     - name: projectId
-      value: abc123
+      value: ""
     - name: userId
-      value: user-id-to-remove
+      value: ""
 
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Removes a member from a project.
+
+  ## Required Variables
+  - projectId (uuid): ID of the project
+  - userId (uuid): ID of the user to remove
+
+  ## Response
+  Returns 204 No Content on success.

@@ -10,7 +10,7 @@ http:
     type: json
     data: |-
       {
-        "tagIds": ["uuid1", "uuid2"]
+        "tagIds": ["{{tagId}}"]
       }
   auth: inherit
 
@@ -18,9 +18,24 @@ runtime:
   variables:
     - name: taskId
       value: ""
+    - name: tagId
+      value: ""
 
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Adds tags to a task.
+
+  ## Required Variables
+  - taskId (uuid): ID of the task
+  - tagId (uuid): ID of the tag to add
+
+  ## Request Body
+  - tagIds (array): Array of tag IDs to add
+
+  ## Response
+  Returns the updated tag list.

@@ -10,13 +10,33 @@ http:
     type: json
     data: |-
       {
-        "title": "Updated task",
+        "title": "Updated Task",
         "status": "IN_PROGRESS"
       }
   auth: inherit
+
+runtime:
+  variables:
+    - name: taskId
+      value: ""
 
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Updates task details.
+
+  ## Required Variables
+  - taskId (uuid): ID of the task
+
+  ## Request Body
+  - title (string, optional): Task title
+  - description (string, optional): Task description
+  - status (string, optional): TODO, IN_PROGRESS, DONE
+  - priority (string, optional): LOW, MEDIUM, HIGH
+
+  ## Response
+  Returns the updated task object.

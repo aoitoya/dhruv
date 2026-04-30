@@ -1,15 +1,32 @@
 info:
   name: remove member from workspace
   type: http
-  seq: 11
+  seq: 14
 
 http:
   method: DELETE
   url: "{{baseUrl}}/api/workspaces/{{workspaceId}}/members/{{memberUserId}}"
   auth: inherit
 
+runtime:
+  variables:
+    - name: workspaceId
+      value: ""
+    - name: memberUserId
+      value: ""
+
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Removes a member from a workspace. Cannot remove workspace owners.
+
+  ## Required Variables
+  - workspaceId (uuid): ID of the workspace
+  - memberUserId (uuid): ID of the user to remove
+
+  ## Response
+  Returns 204 No Content on success.

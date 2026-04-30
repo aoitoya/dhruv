@@ -18,3 +18,12 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Retrieves all tags assigned to a task.
+
+  ## Required Variables
+  - taskId (uuid): ID of the task
+
+  ## Response
+  Returns an array of tag objects.

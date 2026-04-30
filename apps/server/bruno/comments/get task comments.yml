@@ -8,8 +8,22 @@ http:
   url: "{{baseUrl}}/api/tasks/{{taskId}}/comments"
   auth: inherit
 
+runtime:
+  variables:
+    - name: taskId
+      value: ""
+
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Retrieves all comments on a task.
+
+  ## Required Variables
+  - taskId (uuid): ID of the task
+
+  ## Response
+  Returns an array of comment objects ordered by createdAt.

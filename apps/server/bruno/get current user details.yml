@@ -13,3 +13,9 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Retrieves the currently authenticated user's profile.
+
+  ## Response
+  Returns the user object with email, name, and settings.

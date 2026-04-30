@@ -14,8 +14,25 @@ http:
       }
   auth: inherit
 
+runtime:
+  variables:
+    - name: commentId
+      value: ""
+
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Updates a comment's content.
+
+  ## Required Variables
+  - commentId (uuid): ID of the comment
+
+  ## Request Body
+  - content (string, required): New comment content
+
+  ## Response
+  Returns the updated comment object.

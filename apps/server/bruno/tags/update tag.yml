@@ -25,3 +25,16 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Updates a tag's name or color.
+
+  ## Required Variables
+  - tagId (uuid): ID of the tag
+
+  ## Request Body
+  - name (string, optional): Tag name
+  - color (string, optional): Hex color code
+
+  ## Response
+  Returns the updated tag object.

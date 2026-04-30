@@ -11,10 +11,22 @@ http:
 runtime:
   variables:
     - name: projectId
-      value: abc123
+      value: ""
 
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Deletes a project and all its tasks.
+
+  ## Required Variables
+  - projectId (uuid): ID of the project
+
+  ## Response
+  Returns 204 No Content on success.
+
+  ## Warning
+  This will also delete all tasks in the project.

@@ -10,17 +10,32 @@ http:
     type: json
     data: |-
       {
-        "userIds": ["user-id-1", "user-id-2"]
+        "userIds": ["{{userId}}"]
       }
   auth: inherit
 
 runtime:
   variables:
     - name: projectId
-      value: abc123
+      value: ""
+    - name: userId
+      value: ""
 
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Adds members to a project.
+
+  ## Required Variables
+  - projectId (uuid): ID of the project
+  - userId (uuid): ID of the user to add
+
+  ## Request Body
+  - userIds (array): Array of user IDs to add
+
+  ## Response
+  Returns the updated member list.

@@ -13,3 +13,9 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Retrieves all workspace invitations sent to the current user.
+
+  ## Response
+  Returns an array of pending invites across all workspaces.

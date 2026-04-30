@@ -8,8 +8,22 @@ http:
   url: "{{baseUrl}}/api/workspaces/{{workspaceId}}"
   auth: inherit
 
+runtime:
+  variables:
+    - name: workspaceId
+      value: ""
+
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Retrieves a single workspace by its ID.
+
+  ## Required Variables
+  - workspaceId (uuid): ID of the workspace to fetch
+
+  ## Response
+  Returns the workspace object with members and projects count.

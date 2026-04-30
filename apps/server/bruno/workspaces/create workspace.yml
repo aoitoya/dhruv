@@ -10,7 +10,7 @@ http:
     type: json
     data: |-
       {
-        "name": "dhruv"
+        "name": "My Workspace"
       }
   auth: inherit
 
@@ -19,3 +19,15 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |
+  Creates a new workspace for the authenticated user.
+
+  ## Request Body
+  - name (string, required): Workspace name
+
+  ## Response
+  Returns the created workspace object with id, name, createdAt.
+
+  ## Usage
+  Run this first to get a workspaceId for other requests.
