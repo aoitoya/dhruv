@@ -1,0 +1,22 @@
+info:
+  name: remove tag from task
+  type: http
+  seq: 7
+
+http:
+  method: DELETE
+  url: "{{baseUrl}}/api/tasks/{{taskId}}/tags/{{tagId}}"
+  auth: inherit
+
+runtime:
+  variables:
+    - name: taskId
+      value: ""
+    - name: tagId
+      value: ""
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

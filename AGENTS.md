@@ -1,8 +1,8 @@
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-04-21
-**Commit:** 5382dc9
-**Branch:** main
+**Generated:** 2026-04-22
+**Commit:** 335834c0
+**Branch:** feat/workspace-invite-email
 
 ## OVERVIEW
 

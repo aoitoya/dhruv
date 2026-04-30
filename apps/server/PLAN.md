@@ -15,22 +15,45 @@ project management tool. The stack is:
 - **Framework:** Fastify with TypeScript
 - **ORM:** Drizzle ORM
 - **Database:** PostgreSQL via Neon (serverless)
-- **Auth:** better-auth with Redis storage
-- **AI:** Anthropic SDK (`claude-sonnet-4-6`)
+- **Auth:** better-auth with Redis storage (IMPLEMENTED)
+- **AI:** Anthropic SDK (`claude-sonnet-4-6`) - NOT YET IMPLEMENTED
 - **Email:** Resend
 - **Validation:** Zod with Fastify JSON Schema type provider
 
-The backend lives at `apps/server/` inside a pnpm monorepo. Shared types
-live in `packages/shared/`.
+The backend lives at `apps/server/` inside a pnpm monorepo.
+
+---
+
+## IMPLEMENTATION STATUS
+
+✅ **COMPLETED:**
+- Phase 0: Monorepo scaffold
+- Phase 1: Database schema (adapted - see below)
+- Phase 2: Server bootstrap + middleware
+- Phase 3: Auth (better-auth + Redis)
+- Phase 4: Workspaces
+- Phase 5: Workspace Invitations
+- Phase 6: Projects
+- Phase 7: Tasks (partial)
+- Phase 8: Comments
+
+⏳ **NOT YET IMPLEMENTED:**
+- Tags + Task Tags
+- Notifications
+- Activity Logs
+- Dashboard
+- AI Features (Phase 10)
+- Final wiring (Phase 11)
+- Deploy (Phase 12)
 
 ---
 
 ## Absolute rules — never violate these
 
 1. **Install deps one phase at a time.** Each phase lists exactly what to install.
-2. **Never store raw tokens.** Refresh tokens and invite tokens are always
-   SHA-256 hashed before writing to the DB. The raw token goes to the client only.
-3. **Never store passwords in plaintext.** Always use argon2id.
+2. **Never store raw tokens.** For invites, always SHA-256 hash before DB.
+   (better-auth handles its own tokens - no manual handling needed)
+3. **Never store passwords in plaintext.** better-auth handles this.
 4. **Never use `DEFAULT 0` on `tasks.position`.** Always compute it explicitly.
 5. **AI rate limit uses atomic upsert** — never SELECT then UPDATE separately.
 6. **Cookie must be `SameSite=None; Secure; HttpOnly`** in production.
@@ -39,6 +62,7 @@ live in `packages/shared/`.
 8. **All timestamps are `timestamptz`** (UTC with timezone).
 9. **Subtasks must be created after their parent task** — never before.
 10. **Commit the `migrations/` folder.** It is not gitignored.
+11. **Auth is handled by better-auth** - do NOT implement custom JWT/auth.
 
 ---
 
@@ -212,12 +236,39 @@ Run `pnpm dev` and confirm `{"ok":true}` at `http://localhost:3000`.
 
 ---
 
-## Phase 1 — Database schema + migrations
+## Phase 1 — Database schema + migrations (IMPLEMENTED - split schema)
 
-### Install (Phase 1 only)
+### Install
 ```bash
 pnpm add drizzle-orm @neondatabase/serverless dotenv
 pnpm add drizzle-kit --save-dev
+```
+
+### Actual Implementation
+
+Schema is split into multiple files:
+- `apps/server/src/db/schema/auth.ts` - better-auth tables (user, session, account, verification)
+- `apps/server/src/db/schema/workspace.ts` - workspace, workspaceMember, workspaceInvite, workspaceInvitation
+- `apps/server/src/db/schema/project.ts` - project, projectMember
+- `apps/server/src/db/schema/task.ts` - task
+- `apps/server/src/db/schema/index.ts` - exports all
+
+**Key differences from original plan:**
+- Uses `text()` for IDs instead of `uuid()` (better-auth requirement)
+- Enum values are UPPERCASE (`'OWNER'`, `'ADMIN'`, `'MEMBER'`) vs lowercase
+- Two invite tables exist: `workspaceInvite` and `workspaceInvitation` (duplication to clean up)
+- Missing tables: tags, task_tags, comments, activity_logs, notifications, ai_usage, ai_logs
+
+**Files:**
+```
+src/db/
+├── index.ts           # DB connection
+└── schema/
+    ├── index.ts       # exports all
+    ├── auth.ts        # better-auth tables
+    ├── workspace.ts   # workspace, member, invite
+    ├── project.ts     # project, projectMember
+    └── task.ts        # task
 ```
 
 ### Steps
@@ -483,121 +534,114 @@ pnpm add drizzle-kit --save-dev
 
 ---
 
-## Phase 2 — Server bootstrap + middleware
+## Phase 2 — Server bootstrap + middleware (IMPLEMENTED)
 
-### Install (Phase 2 only)
+### Install
 ```bash
 pnpm add zod fastify @fastify/cors @fastify/sensible
 pnpm add dotenv
 ```
 
-### Steps
+### Implementation
 
-**2.1** Create `apps/server/src/lib/env.ts` — centralise env access with
-validation so missing vars fail loudly at startup, not silently at runtime:
-```typescript
-import 'dotenv/config'
+**2.1** Config: `apps/server/src/config/index.ts`
+- Uses Zod for environment validation
+- Different env vars: CLIENT_ORIGIN, GITHUB_CLIENT_ID/SECRET, GOOGLE_CLIENT_ID/SECRET, REDIS_URL
 
-function require(key: string): string {
-  const val = process.env[key]
-  if (!val) throw new Error(`Missing required env var: ${key}`)
-  return val
-}
+**2.2** CORS: `apps/server/src/plugins/cors.ts`
 
-export const env = {
-  DATABASE_URL:      require('DATABASE_URL'),
-  JWT_SECRET:        require('JWT_SECRET'),
-  JWT_REFRESH_SECRET:require('JWT_REFRESH_SECRET'),
-  ANTHROPIC_API_KEY: require('ANTHROPIC_API_KEY'),
-  RESEND_API_KEY:    require('RESEND_API_KEY'),
-  CLOUDINARY_URL:    require('CLOUDINARY_URL'),
-  FRONTEND_URL:      require('FRONTEND_URL'),
-  NODE_ENV:          process.env.NODE_ENV || 'development',
-  PORT:              Number(process.env.PORT) || 3000,
-  isProd:            process.env.NODE_ENV === 'production',
-}
-```
-
-**2.2** Create `apps/server/src/plugins/cors.ts`:
-```typescript
-import cors from '@fastify/cors'
-import type { FastifyInstance } from 'fastify'
-import { env } from '../config/index.js'
-
-// Cross-origin: Vercel frontend -> Railway backend
-// SameSite=None requires Secure, which requires HTTPS.
-// Both Vercel and Railway use HTTPS in production, so this is safe.
-// Local dev runs on HTTP, so SameSite=Lax is used instead.
-export async function registerCors(app: FastifyInstance) {
-  await app.register(cors, {
-    origin: env.FRONTEND_URL,
-    credentials: true,  // required for httpOnly cookies to be sent cross-origin
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  })
-}
-```
-
-**2.3** Create `apps/server/src/plugins/error.ts`:
-```typescript
-import type { FastifyInstance } from 'fastify'
-
-export async function registerErrorHandler(app: FastifyInstance) {
-  app.setErrorHandler((err, request, reply) => {
-    console.error(err)
-    reply.status(500).send({ error: 'Internal server error' })
-  })
-}
-```
-
-**2.4** Rewrite `apps/server/src/index.ts` as the main app with all
-plugins applied:
-```typescript
-import Fastify from 'fastify'
-import { registerCors } from './plugins/cors'
-import { env } from './config/index.js'
-
-const app = Fastify({
-  logger: true,
-})
-
-// Register plugins
-registerCors(app)
-
-// Routes will be mounted here in later phases
-
-app.get('/health', async () => ({ ok: true, env: env.NODE_ENV }))
-
-app.setErrorHandler((err, request, reply) => {
-  console.error(err)
-  reply.status(500).send({ error: 'Internal server error' })
-})
-
-app.setNotFoundHandler((request, reply) => {
-  reply.status(404).send({ error: 'Not found' })
-})
-
-app.listen({ port: env.PORT, host: '0.0.0.0' }, (err) => {
-  if (err) {
-    console.error(err)
-    process.exit(1)
-  }
-  console.log(`Dhruv server running on http://localhost:${env.PORT}`)
-})
-
-export default app
-```
-
-Run `pnpm dev` and confirm `/health` responds.
+**2.3** Entry: `apps/server/src/server.ts` - starts the Fastify app
 
 ---
 
-## Phase 3 — Auth
+## Phase 3 — Auth (IMPLEMENTED with better-auth)
 
-### Install (Phase 3 only)
+### Install
 ```bash
-pnpm add jose argon2
+pnpm add better-auth better-auth/adapters/drizzle ioredis @better-auth/redis-storage
 ```
+
+### Implementation
+
+**3.1** Schema: `apps/server/src/db/schema/auth.ts`
+
+Uses better-auth's required tables:
+- `user` - better-auth managed (no passwordHash field)
+- `session` - with Redis secondary storage
+- `account` - for OAuth providers
+- `verification` - for email verification
+
+**3.2** Service: `apps/server/src/modules/auth/service.ts`
+
+```typescript
+import { redisStorage } from "@better-auth/redis-storage";
+import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { Redis } from "ioredis";
+import { config } from "../../config/index.js";
+import { db } from "../../db/index.js";
+import * as schema from "../../db/schema/index.js";
+
+const redis = new Redis(config.redis.url);
+
+export const auth = betterAuth({
+  appName: "Dhruv",
+  database: drizzleAdapter(db, {
+    provider: "pg",
+    schema,
+  }),
+  secondaryStorage: redisStorage({
+    client: redis,
+  }),
+  session: {
+    expiresIn: 60 * 60 * 24 * 7,
+    updateAge: 60 * 60 * 24,
+    cookieCache: {
+      enabled: true,
+      maxAge: 60 * 5,
+    },
+  },
+  emailAndPassword: {
+    enabled: true,
+  },
+  socialProviders: {
+    github: config.auth.github,
+    google: config.auth.google,
+  },
+  cors: {
+    origin: config.cors.origins,
+    credentials: config.cors.credentials,
+  },
+  trustedOrigins: config.cors.origins,
+});
+```
+
+**3.3** Routes: `apps/server/src/modules/auth/routes.ts`
+
+Proxies all `/api/auth/*` to better-auth's handler:
+```typescript
+export function registerAuthRoutes(app: FastifyInstance) {
+  app.decorate("auth", auth);
+  app.decorate("requireAuth", requireAuth);
+
+  app.route({
+    method: ["GET", "POST"],
+    url: "/api/auth/*",
+    handler: handleAuthRequest,
+  });
+
+  app.get("/api/me", {
+    handler: getSession,
+    onRequest: [app.requireAuth],
+  });
+}
+```
+
+**3.4** Controller: `apps/server/src/modules/auth/controller.ts`
+
+- `requireAuth()` - validates session from cookie
+- `handleAuthRequest()` - proxies to better-auth handler
+- `getSession()` - returns current user
 
 ### Steps
 
@@ -892,540 +936,191 @@ moving to the next phase:
 
 ---
 
-## Phase 4 — Workspaces
+## Phase 4 — Workspaces (IMPLEMENTED)
 
-### Install (Phase 4 only)
-```bash
-# No new dependencies needed for this phase
-```
+### Implementation
 
-### Steps
+Uses service layer pattern:
+- `modules/workspace/service.ts` - business logic
+- `modules/workspace/routes.ts` - HTTP endpoints
+- `modules/workspace/index.ts` - exports
 
-**4.1** Create `apps/server/src/modules/workspace/guards.ts` — reusable workspace/project
-membership checks that will be used across many routes:
-```typescript
-import { eq, and } from 'drizzle-orm'
-import { db } from '../../db/index.js'
-import { workspaceMembers, projectMembers } from '../../db/schema/index.js'
-import type { AuthenticatedRequest } from '../../types/fastify.js'
+All routes protected by better-auth session validation.
 
-export async function getWorkspaceMembership(userId: string, workspaceId: string) {
-  const [member] = await db.select()
-    .from(workspaceMembers)
-    .where(and(
-      eq(workspaceMembers.userId, userId),
-      eq(workspaceMembers.workspaceId, workspaceId)
-    ))
-    .limit(1)
-  return member || null
-}
+**Implemented endpoints:**
+- `GET /workspaces`
+- `POST /workspaces`
+- `GET /workspaces/:id`
+- `PATCH /workspaces/:id`
+- `DELETE /workspaces/:id`
+- `GET /workspaces/:id/members`
+- `POST /workspaces/:id/members`
+- `DELETE /workspaces/:id/members/:userId`
 
-export async function requireWorkspaceMember(request: AuthenticatedRequest, workspaceId: string) {
-  const userId = request.userId
-  const member = await getWorkspaceMembership(userId, workspaceId)
-  if (!member) throw { statusCode: 403, message: 'Not a workspace member' }
-  return member
-}
-
-export async function requireWorkspaceAdmin(request: AuthenticatedRequest, workspaceId: string) {
-  const userId = request.userId
-  const member = await getWorkspaceMembership(userId, workspaceId)
-  if (!member) throw { statusCode: 403, message: 'Not a workspace member' }
-  if (member.role === 'member') throw { statusCode: 403, message: 'Insufficient permissions' }
-  return member
-}
-
-export async function requireWorkspaceOwner(request: AuthenticatedRequest, workspaceId: string) {
-  const userId = request.userId
-  const member = await getWorkspaceMembership(userId, workspaceId)
-  if (!member || member.role !== 'owner') throw { statusCode: 403, message: 'Owner only' }
-  return member
-}
-
-export async function requireProjectMember(request: AuthenticatedRequest, projectId: string) {
-  const userId = request.userId
-  const [member] = await db.select()
-    .from(projectMembers)
-    .where(and(eq(projectMembers.userId, userId), eq(projectMembers.projectId, projectId)))
-    .limit(1)
-  if (!member) throw { statusCode: 403, message: 'Not a project member' }
-  return member
-}
-```
-
-**4.2** Create `apps/server/src/modules/workspace/routes.ts`.
-
-Implement all workspace endpoints:
-- `GET /workspaces` — list all workspaces the user belongs to
-- `POST /workspaces` — create, auto-insert as owner in workspace_members
-- `GET /workspaces/:id` — detail + member list (members only)
-- `PATCH /workspaces/:id` — update (admin+)
-- `DELETE /workspaces/:id` — delete (owner only)
-- `GET /workspaces/:id/members` — list members with roles
-- `PATCH /workspaces/:id/members/:userId` — change role (owner only)
-- `DELETE /workspaces/:id/members/:userId` — remove member (admin+, cannot remove owner)
-- `GET /workspaces/:id/activity` — recent activity_logs for workspace
-
-All routes protected by auth hook. Role checks use guards from 4.1.
-
-After creating a workspace, immediately insert the creator into
-`workspace_members` with `role: 'owner'` in the same transaction if possible,
-otherwise in a follow-up insert.
-
-**4.3** Mount in `src/app.ts`:
-```typescript
-import { registerWorkspaceRoutes } from './modules/workspace/index.js'
-// Inside appRoutes plugin:
-app.register(registerWorkspaceRoutes)
-```
+**Service helper functions:**
+- `isActiveMember(workspaceId, userId)`
+- `isOwner(workspaceId, userId)`
+- `isAdminOrOwner(workspaceId, userId)`
 
 ---
 
-## Phase 5 — Workspace Invitations
+## Phase 5 — Workspace Invitations (IMPLEMENTED)
 
-### Install (Phase 5 only)
+### Install
 ```bash
 pnpm add resend
 ```
 
-### Steps
+### Implementation
 
-**5.1** Create `apps/server/src/lib/email.ts`:
-```typescript
-import { Resend } from 'resend'
-import { env } from './env'
+**5.1** Email: `apps/server/src/utils/email.ts`
 
-const resend = new Resend(env.RESEND_API_KEY)
+**5.2** Routes are part of workspace module:
+- `POST /workspaces/:id/invitations` — admin+ only
+- `GET /workspaces/:id/invitations` — admin+ only
+- `DELETE /workspaces/:id/invitations/:invId` — admin+ only
+- `GET /invitations/:token` — public
+- `POST /invitations/:token/accept` — authenticated
 
-export async function sendInviteEmail({
-  to,
-  inviterName,
-  workspaceName,
-  role,
-  rawToken,
-}: {
-  to: string
-  inviterName: string
-  workspaceName: string
-  role: string
-  rawToken: string
-}) {
-  const link = `${env.FRONTEND_URL}/invite/${rawToken}`
-
-  await resend.emails.send({
-    from:    'Dhruv <no-reply@yourdomain.com>',  // update after adding domain in Resend
-    to,
-    subject: `${inviterName} invited you to ${workspaceName} on Dhruv`,
-    html: `
-      <p>Hi,</p>
-      <p><strong>${inviterName}</strong> has invited you to join
-         <strong>${workspaceName}</strong> on Dhruv as a <strong>${role}</strong>.</p>
-      <p><a href="${link}">Accept invitation</a></p>
-      <p>This link expires in 48 hours.</p>
-      <p style="color:#888;font-size:12px">If you did not expect this, ignore this email.</p>
-    `,
-  })
-}
-```
-
-**5.2** Create `apps/server/src/routes/invitations.ts`.
-
-Implement:
-- `POST /workspaces/:id/invitations` — admin+ only. Generate raw token,
-  hash it, insert into workspace_invitations, send email via Resend.
-  Token expires in 48 hours.
-  Check for duplicate pending invite (same email + workspace) and return 409.
-- `GET /workspaces/:id/invitations` — admin+ only. List pending invitations.
-- `DELETE /workspaces/:id/invitations/:invId` — admin+ only. Set status to
-  'expired' or delete row.
-- `GET /invitations/:token` — **PUBLIC** (no auth). Hash the incoming token,
-  look up in DB, check status === 'pending' and expiresAt > now. Return
-  workspace name, inviter name, and role. Return 404 if not found or expired.
-- `POST /invitations/:token/accept` — **AUTHENTICATED**. Hash token, find
-  record. If expired or already accepted, return 410. Insert into
-  workspace_members. Update invitation status to 'accepted'. Return workspace.
-
-**5.3** Mount:
-```typescript
-import { registerInvitationRoutes } from './modules/invitations/index.js'
-app.register(registerInvitationRoutes, { prefix: '/api' })
-```
+Uses `workspaceInvite` and `workspaceInvitation` tables (both exist - cleanup needed)
 
 ---
 
-## Phase 6 — Projects
+## Phase 6 — Projects (IMPLEMENTED)
 
-### Install (Phase 6 only)
-```bash
-# No new dependencies needed
-```
+### Implementation
 
-### Steps
+Uses service layer pattern:
+- `modules/project/service.ts` - business logic
+- `modules/project/routes.ts` - HTTP endpoints
+- `modules/project/index.ts` - exports
 
-**6.1** Create `apps/server/src/routes/projects.ts`.
-
-Implement:
-- `GET /workspaces/:wId/projects` — list projects in workspace the user has
-  access to (is in project_members or is workspace admin/owner)
-- `POST /workspaces/:wId/projects` — admin+ only. Auto-add creator to
-  project_members.
-- `GET /projects/:id` — project detail. Check user is project member or
-  workspace admin/owner.
-- `PATCH /projects/:id` — update name, description, color, status, dueDate
-- `DELETE /projects/:id` — admin+ only
-- `GET /projects/:id/members` — list project members (needed for assignee picker)
-- `POST /projects/:id/members` — add a workspace member to project. Check
-  that the user being added is actually a workspace member first.
-- `DELETE /projects/:id/members/:userId` — remove from project
-
-**6.2** Mount:
-```typescript
-import { registerProjectRoutes } from './modules/project/index.js'
-app.register(registerProjectRoutes, { prefix: '/api' })
-```
+**Implemented endpoints:**
+- `GET /workspaces/:workspaceId/projects`
+- `POST /workspaces/:workspaceId/projects`
+- `GET /projects/:id`
+- `PATCH /projects/:id`
+- `DELETE /projects/:id`
+- `GET /projects/:id/members`
+- `POST /projects/:id/members`
+- `DELETE /projects/:id/members/:userId`
 
 ---
 
-## Phase 7 — Tasks
+## Phase 7 — Tasks (PARTIAL)
 
-### Install (Phase 7 only)
-```bash
-# No new dependencies needed
-```
+### Implementation
 
-### Steps
+Uses service layer pattern:
+- `modules/task/service.ts` - business logic
+- `modules/task/routes.ts` - HTTP endpoints
+- `modules/task/index.ts` - exports
 
-**7.1** Create `apps/server/src/lib/position.ts`:
-```typescript
-import { eq, and, max } from 'drizzle-orm'
-import { db } from '../db'
-import { tasks } from '../db/schema'
+**Implemented endpoints:**
+- `GET /projects/:projectId/tasks`
+- `POST /projects/:projectId/tasks`
+- `GET /tasks/:id`
+- `PATCH /tasks/:id`
 
-// Computes the next position for a new task in a given project+status column.
-// Gap of 1000.0 leaves room for insertions without immediate reindex.
-export async function nextPosition(projectId: string, status: string): Promise<number> {
-  const result = await db
-    .select({ maxPos: max(tasks.position) })
-    .from(tasks)
-    .where(and(
-      eq(tasks.projectId, projectId),
-      eq(tasks.status, status as any),
-      // Only top-level tasks have positions (not subtasks)
-      // parentTaskId IS NULL handled below if needed
-    ))
-
-  const current = result[0]?.maxPos ?? 0
-  return current + 1000.0
-}
-
-// Reindex all tasks in a column when precision degrades.
-// Call this if any gap < 0.001 is detected.
-export async function reindexColumn(projectId: string, status: string): Promise<void> {
-  const columnTasks = await db.select({ id: tasks.id })
-    .from(tasks)
-    .where(and(eq(tasks.projectId, projectId), eq(tasks.status, status as any)))
-    .orderBy(tasks.position)
-
-  for (let i = 0; i < columnTasks.length; i++) {
-    await db.update(tasks)
-      .set({ position: (i + 1) * 1000.0 })
-      .where(eq(tasks.id, columnTasks[i].id))
-  }
-}
-```
-
-**7.2** Create `apps/server/src/routes/tasks.ts`.
-
-Implement:
-- `GET /projects/:pId/tasks` — list tasks. Query params: `status`, `priority`,
-  `assigneeId`, `sort` (dueDate|priority). Exclude subtasks from list view
-  (where `parentTaskId IS NULL`). Include tags.
-- `POST /projects/:pId/tasks` — create task. Compute position with
-  `nextPosition()`. Validate assigneeId is a project member if provided.
-  Write to activity_logs: action 'created'. If assigneeId is set and differs
-  from createdBy, create a notification (type: 'assigned').
-- `GET /tasks/:id` — task detail. Include subtasks (tasks where parentTaskId =
-  id), tags, comments (most recent first), and activity_logs for this task.
-- `PATCH /tasks/:id` — update any field. If status changes, write activity_log
-  with meta `{field:'status', from: old, to: new}`. If assignee changes, write
-  activity_log and notification.
-- `DELETE /tasks/:id` — cascades handled by DB. Write activity_log.
-- `PATCH /tasks/:id/position` — body `{ position: number }`. Validate position
-  > 0. Check if min gap in column drops below 0.001 and call reindexColumn if so.
-
-**7.3** Mount:
-```typescript
-import { registerTaskRoutes } from './modules/task/index.js'
-app.register(registerTaskRoutes, { prefix: '/api' })
-```
+**NOT YET IMPLEMENTED:**
+- Position management (nextPosition, reindexColumn)
+- Subtask handling
+- Task tags
+- Activity logs
 
 ---
 
-## Phase 8 — Tags + Comments + Notifications
+## Phase 8 — Comments (IMPLEMENTED)
 
-### Install (Phase 8 only)
-```bash
-# No new dependencies needed
-```
+### Implementation
 
-### Steps
+**8.1** Comments: `modules/comment/`
+- `service.ts` - business logic
+- `routes.ts` - HTTP endpoints
+- `index.ts` - exports
 
-**8.1** Create `apps/server/src/routes/tags.ts`:
-- `GET /workspaces/:wId/tags`
-- `POST /workspaces/:wId/tags`
-- `PATCH /tags/:id`
-- `DELETE /tags/:id`
+**Implemented endpoints:**
+- `GET /tasks/:taskId/comments`
+- `POST /tasks/:taskId/comments`
+- `PATCH /comments/:id`
+- `DELETE /comments/:id`
 
-Tags are workspace-scoped. Check workspace membership on all operations.
-On tag-task association, validate task belongs to a project in the workspace.
-
-**8.2** Create `apps/server/src/routes/comments.ts`:
-- `GET /tasks/:taskId/comments` — chronological order (oldest first)
-- `POST /tasks/:taskId/comments` — creates comment. Writes activity_log
-  (action: 'commented'). Creates notification for task assignee if they
-  are not the comment author.
-- `PATCH /comments/:id` — author only. Update content + updatedAt.
-- `DELETE /comments/:id` — author only.
-
-**8.3** Create `apps/server/src/routes/notifications.ts`:
-- `GET /notifications` — all for current user. Query param `unread=true`.
-  Order by createdAt DESC. Limit 50.
-- `PATCH /notifications/:id/read` — mark one as read. Verify ownership.
-- `PATCH /notifications/read-all` — mark all as read for current user.
-
-**8.4** Create `apps/server/src/routes/users.ts`:
-- `GET /users/search?q=&workspaceId=` — search users who are members of the
-  workspace. Used by assignee picker and @mention autocomplete. Match on name
-  or email prefix. Return at most 10 results. Strip passwordHash from response.
-
-**8.5** Mount all four in `src/app.ts`:
-```typescript
-import { registerTagRoutes } from './modules/tag/index.js'
-import { registerCommentRoutes } from './modules/comment/index.js'
-import { registerNotificationRoutes } from './modules/notification/index.js'
-import { registerUserRoutes } from './modules/user/index.js'
-
-app.register(registerTagRoutes, { prefix: '/api' })
-app.register(registerCommentRoutes, { prefix: '/api' })
-app.register(registerNotificationRoutes, { prefix: '/api' })
-app.register(registerUserRoutes, { prefix: '/api' })
-```
+⏳ **NOT YET IMPLEMENTED:**
+- Tags + Task Tags
+- Notifications
+- User search
 
 ---
 
-## Phase 9 — Dashboard
+## Phase 9 — Dashboard (NOT YET IMPLEMENTED)
 
-### Install (Phase 9 only)
-```bash
-# No new dependencies needed
+### To Implement
+
+Create `modules/dashboard/routes.ts`:
 ```
-
-### Steps
-
-**9.1** Create `apps/server/src/routes/dashboard.ts`:
-
-`GET /dashboard` — aggregated view for the current user:
-```
+GET /dashboard
 {
-  myTasks: Task[]          // assigned to me, status != done, across all workspaces
-  upcomingDeadlines: Task[] // dueDate within next 14 days, status != done
-  projectStatusCounts: {
-    projectId: string
-    projectName: string
-    todo: number
-    inProgress: number
-    inReview: number
-    done: number
-  }[]
-  recentActivity: ActivityLog[]  // last 20 across all user's workspaces
+  myTasks: Task[]
+  upcomingDeadlines: Task[]
+  projectStatusCounts: {...}
+  recentActivity: ActivityLog[]
 }
 ```
 
-Run these as separate queries — do not try to do it in one giant JOIN, it is
-not worth the complexity for a portfolio project.
-
-**9.2** Mount:
-```typescript
-import { registerDashboardRoutes } from './modules/dashboard/index.js'
-app.register(registerDashboardRoutes, { prefix: '/api/dashboard' })
-```
+Requires activity_logs table to be created first.
 
 ---
 
-## Phase 10 — AI features
+## Phase 10 — AI features (NOT YET IMPLEMENTED)
 
-### Install (Phase 10 only)
+### Install
 ```bash
 pnpm add @anthropic-ai/sdk
 ```
 
-### Steps
+### To Implement
 
-**10.1** Create `apps/server/src/lib/ai.ts` — the central AI service:
+**Requires creating tables first:**
+- `ai_usage` - rate limiting
+- `ai_logs` - logging
+
+**10.1** Create `src/lib/ai.ts`:
 ```typescript
 import Anthropic from '@anthropic-ai/sdk'
 import { env } from './env'
 
 export const anthropic = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY })
-export const MODEL = 'claude-sonnet-4-6' as const
-export const MAX_TOKENS = 1024
+export const MODEL = 'claude-sonnet-4-20250514'
 ```
 
-**10.2** Create `apps/server/src/lib/rateLimit.ts`:
-```typescript
-import { sql } from 'drizzle-orm'
-import { db } from '../db/index.js'
+**10.2** Create `src/lib/rateLimit.ts` - atomic upsert for rate limiting
 
-const DAILY_LIMIT = 20
-
-// Atomic upsert — NOT a SELECT then UPDATE.
-// Returns the new call_count after increment.
-// If count > DAILY_LIMIT, the caller should return 429.
-export async function incrementAiUsage(
-  userId: string,
-  feature: 'breakdown' | 'priority' | 'parse'
-): Promise<number> {
-  const today = new Date().toISOString().slice(0, 10)  // YYYY-MM-DD
-
-  const result = await db.execute(sql`
-    INSERT INTO ai_usage (id, user_id, feature, date, call_count)
-    VALUES (gen_random_uuid(), ${userId}, ${feature}, ${today}, 1)
-    ON CONFLICT (user_id, date, feature)
-    DO UPDATE SET call_count = ai_usage.call_count + 1
-    RETURNING call_count
-  `)
-
-  return (result.rows[0] as any).call_count as number
-}
-
-export async function getRemainingCalls(userId: string, feature: string): Promise<number> {
-  const today = new Date().toISOString().slice(0, 10)
-  const result = await db.execute(sql`
-    SELECT call_count FROM ai_usage
-    WHERE user_id = ${userId} AND feature = ${feature} AND date = ${today}
-  `)
-  const used = (result.rows[0] as any)?.call_count ?? 0
-  return Math.max(0, DAILY_LIMIT - used)
-}
-
-export async function logAiCall(params: {
-  userId: string
-  feature: 'breakdown' | 'priority' | 'parse'
-  prompt: string
-  response: string
-  latencyMs: number
-}) {
-  await db.execute(sql`
-    INSERT INTO ai_logs (id, user_id, feature, prompt, response, latency_ms, created_at)
-    VALUES (gen_random_uuid(), ${params.userId}, ${params.feature},
-            ${params.prompt}, ${params.response}, ${params.latencyMs}, NOW())
-  `)
-}
-```
-
-**10.3** Create `apps/server/src/routes/ai.ts`.
-
-Implement three endpoints:
-
-**`POST /ai/breakdown`**
-- Body: `{ taskId: string, title: string, description: string }`
-- Check rate limit (increment, reject if > 20)
-- System prompt: see spec section 4.2
-- Parse JSON response carefully — wrap in try/catch, return 500 if invalid JSON
-- Do NOT create subtasks here. Return the array to the frontend.
-  The frontend will call PATCH /tasks (create task first if needed), then
-  POST /projects/:id/tasks for each accepted subtask.
-- Log to ai_logs
-
-**`POST /ai/priority`**
-- Body: `{ title, description, dueDate?, assigneeId? }`
-- If assigneeId provided, fetch their current open task count from DB
-- Check rate limit
-- Return `{ priority: 'critical'|'high'|'medium'|'low', reason: string }`
-- Log to ai_logs
-
-**`POST /ai/parse-task`**
-- Body: `{ input: string, projectId: string }`
-- Fetch project members (id + name) from DB — inject into system prompt
-- Inject today's date into system prompt
-- Check rate limit
-- Return `{ title, assigneeId, priority, dueDate }` — all fields nullable
-- If Claude returns an assignee name not in the member list, set assigneeId to null
-- Log to ai_logs
-
-**`GET /ai/usage`**
-- Return remaining calls for each feature today:
-  `{ breakdown: number, priority: number, parse: number }`
-
-All AI endpoints: apply `authMiddleware`. On any Anthropic API error, catch
-and return `{ error: 'AI service temporarily unavailable' }` with status 503.
-Never let an AI error crash the server.
-
-**10.4** Mount:
-```typescript
-import { registerAiRoutes } from './modules/ai/index.js'
-app.register(registerAiRoutes, { prefix: '/api/ai' })
-```
+**10.3** Create `modules/ai/routes.ts`:
+- `POST /ai/breakdown` - break task into subtasks
+- `POST /ai/priority` - suggest priority
+- `POST /ai/parse-task` - natural language to task
+- `GET /ai/usage` - remaining calls
 
 ---
 
-## Phase 11 — Final wiring + hardening
+## Phase 11 — Final wiring + hardening (NOT YET IMPLEMENTED)
 
-### Install (Phase 11 only)
-```bash
-# No new dependencies needed
-```
+### To Do
 
-### Steps
-
-**11.1** Add a global request ID to every response for debugging:
-```typescript
-import type { FastifyInstance } from 'fastify'
-
-export async function registerRequestId(app: FastifyInstance) {
-  app.addHook('onRequest', async (request) => {
-    request.id = request.id || crypto.randomUUID()
-  })
-}
-```
-
-**11.2** Add a 404 handler for unmatched API routes:
-```typescript
-app.setNotFoundHandler((request, reply) => {
-  reply.status(404).send({ error: 'Not found' })
-})
-```
-
-**11.3** Audit every route file — verify:
-- [ ] Every route has auth hook applied (except public ones)
-- [ ] Every POST/PATCH has JSON schema validation applied
-- [ ] No route returns `passwordHash` in any user object
-- [ ] All DB queries use parameterised values (no string concatenation)
-- [ ] Activity log is written for: task created, task status changed,
-      task assigned, comment added
-- [ ] Notification is created for: task assigned (to assignee),
-      comment added (to task assignee if different from commenter)
-
-**11.4** Environment validation — confirm `src/lib/env.ts` is imported in
-`src/index.ts` before anything else. This ensures the server fails loudly
-at startup if any env var is missing, rather than failing silently mid-request.
-
-**11.5** Test the complete flow end-to-end:
-1. Register two users (A and B)
-2. A creates a workspace
-3. A invites B by email
-4. B accepts invitation
-5. A creates a project and adds B to it
-6. A creates a task, assigns to B
-7. Verify B receives a notification
-8. B adds a comment — verify activity log entry
-9. Call `POST /ai/breakdown` — verify subtask array returned
-10. Call `POST /ai/parse-task` — verify date resolved and assignee matched
-11. Call `POST /ai/usage` 21 times for same feature — verify 22nd returns 429
+- [ ] Add global request ID hook
+- [ ] Audit all routes for auth
+- [ ] Verify activity logging
+- [ ] End-to-end test
 
 ---
 
-## Phase 12 — Deploy to Railway
+## Phase 12 — Deploy to Railway (NOT YET IMPLEMENTED)
+
+### To Do
+
+- [ ] Configure Railway deployment
+- [ ] Set up environment variables
+- [ ] Test production
 
 ### Steps
 

@@ -10,8 +10,8 @@ http:
     type: json
     data: |-
       {
-        "userIds": ["3dqvvs4B6XyafDXjarqvIcdc47aFhV7F"],
-        "email": "saptarshimula3@gmail.com"
+        "email": "saptarshimula3@gmail.com",
+        "role": "ADMIN"
       }
   auth: inherit
 

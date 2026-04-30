@@ -1,0 +1,20 @@
+info:
+  name: get workspace tags
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{baseUrl}}/api/workspaces/{{workspaceId}}/tags"
+  auth: inherit
+
+runtime:
+  variables:
+    - name: workspaceId
+      value: ""
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,27 @@
+info:
+  name: update tag
+  type: http
+  seq: 3
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/api/tags/{{tagId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Updated Tag",
+        "color": "#22c55e"
+      }
+  auth: inherit
+
+runtime:
+  variables:
+    - name: tagId
+      value: ""
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
